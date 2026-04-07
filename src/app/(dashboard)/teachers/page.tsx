@@ -1,0 +1,196 @@
+﻿import { createTeacherAction, deleteTeacherAction, updateTeacherAction } from "./actions";
+import { getTeacherManagementData } from "@/lib/organization/queries";
+
+type PageProps = {
+  searchParams: Promise<{
+    created?: string;
+    deleted?: string;
+    updated?: string;
+    error?: string;
+    editing?: string;
+  }>;
+};
+
+export default async function TeachersPage({ searchParams }: PageProps) {
+  const params = await searchParams;
+  const teachers = await getTeacherManagementData();
+  const editingId = params.editing ?? null;
+
+  return (
+    <section className="space-y-6">
+      <div className="rounded-[28px] border border-[var(--border)] bg-white p-7 shadow-sm">
+        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--accent)]">
+          Professores
+        </p>
+        <h2 className="mt-3 text-3xl font-semibold text-[var(--foreground)]">
+          Gerenciamento de professores
+        </h2>
+        <p className="mt-4 max-w-2xl text-base leading-7 text-[var(--muted-foreground)]">
+          Cadastre os professores da unidade e acompanhe as turmas ligadas a cada um deles.
+        </p>
+      </div>
+
+      {params.error ? (
+        <div className="rounded-[24px] border border-[rgba(180,83,9,0.18)] bg-[rgba(255,247,237,0.92)] px-5 py-4 text-sm font-medium text-[rgb(146,64,14)] shadow-sm">
+          {params.error}
+        </div>
+      ) : null}
+
+      {params.created ? (
+        <div className="rounded-[24px] border border-[rgba(22,101,52,0.16)] bg-[rgba(240,253,244,0.92)] px-5 py-4 text-sm font-medium text-[rgb(21,128,61)] shadow-sm">
+          {params.created}
+        </div>
+      ) : null}
+
+      {params.updated ? (
+        <div className="rounded-[24px] border border-[rgba(22,101,52,0.16)] bg-[rgba(240,253,244,0.92)] px-5 py-4 text-sm font-medium text-[rgb(21,128,61)] shadow-sm">
+          {params.updated}
+        </div>
+      ) : null}
+
+      {params.deleted ? (
+        <div className="rounded-[24px] border border-[rgba(22,101,52,0.16)] bg-[rgba(240,253,244,0.92)] px-5 py-4 text-sm font-medium text-[rgb(21,128,61)] shadow-sm">
+          {params.deleted}
+        </div>
+      ) : null}
+
+      <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+        <div className="rounded-[28px] border border-[var(--border)] bg-white p-7 shadow-sm">
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--accent)]">
+            Novo professor
+          </p>
+          <form action={createTeacherAction} className="mt-5 space-y-4">
+            <label className="block text-sm font-medium text-[var(--foreground)]">
+              Nome do professor
+              <input
+                name="name"
+                placeholder="Ex.: Passi"
+                className="mt-2 w-full rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[rgba(182,133,58,0.18)]"
+              />
+            </label>
+            <button
+              type="submit"
+              className="rounded-xl bg-[var(--primary)] px-5 py-3 text-sm font-semibold text-white transition hover:opacity-95"
+            >
+              Salvar professor
+            </button>
+          </form>
+        </div>
+
+        <div className="rounded-[28px] border border-[var(--border)] bg-white p-7 shadow-sm">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--accent)]">
+                Professores cadastrados
+              </p>
+              <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">
+                Consulte quantas turmas cada professor atende e quais são elas.
+              </p>
+            </div>
+            <div className="rounded-full bg-[var(--panel)] px-4 py-2 text-sm font-semibold text-[var(--foreground)]">
+              {teachers.length} {teachers.length === 1 ? "professor" : "professores"}
+            </div>
+          </div>
+
+          <div className="mt-6 space-y-3">
+            {teachers.length > 0 ? (
+              teachers.map((item) => {
+                const isEditing = editingId === item.id;
+
+                return (
+                  <div
+                    key={item.id}
+                    className="rounded-[22px] border border-[var(--border)] bg-[var(--panel)] px-4 py-4"
+                  >
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                      <div className="max-w-[520px] space-y-2">
+                        <p className="text-base font-semibold text-[var(--foreground)]">
+                          {item.name}
+                        </p>
+                        <p className="text-sm text-[var(--muted-foreground)]">
+                          {item.studentCount} {item.studentCount === 1 ? "aluno vinculado" : "alunos vinculados"}
+                        </p>
+                        <p className="text-sm text-[var(--muted-foreground)]">
+                          {item.classCount} {item.classCount === 1 ? "turma associada" : "turmas associadas"}
+                        </p>
+                        <div className="space-y-1 pt-1">
+                          {item.classNames.length > 0 ? (
+                            item.classNames.map((className) => (
+                              <p
+                                key={className}
+                                className="text-sm text-[var(--muted-foreground)]"
+                              >
+                                • {className}
+                              </p>
+                            ))
+                          ) : (
+                            <p className="text-sm text-[var(--muted-foreground)]">
+                              Nenhuma turma associada
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      {isEditing ? (
+                        <div className="flex flex-col gap-3 sm:flex-row">
+                          <form
+                            action={updateTeacherAction.bind(null, item.id, item.name)}
+                            className="flex flex-col gap-3 sm:flex-row"
+                          >
+                            <input
+                              name="name"
+                              defaultValue={item.name}
+                              aria-label={`Editar professor ${item.name}`}
+                              className="min-w-[260px] rounded-xl border border-[var(--border)] bg-white px-4 py-2.5 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--accent)]"
+                            />
+                            <button
+                              type="submit"
+                              className="rounded-xl border border-[var(--border)] bg-white px-4 py-2 text-sm font-semibold text-[var(--foreground)] transition hover:bg-white"
+                            >
+                              Salvar
+                            </button>
+                          </form>
+
+                          <a
+                            href="/teachers"
+                            className="rounded-xl border border-[var(--border)] bg-white px-4 py-2 text-center text-sm font-semibold text-[var(--foreground)] transition hover:bg-white"
+                          >
+                            Cancelar
+                          </a>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col gap-3 sm:flex-row">
+                          <a
+                            href={`/teachers?editing=${item.id}`}
+                            className="rounded-xl border border-[var(--border)] bg-white px-4 py-2 text-center text-sm font-semibold text-[var(--foreground)] transition hover:bg-white"
+                          >
+                            Editar
+                          </a>
+
+                          <form action={deleteTeacherAction.bind(null, item.id, item.name)}>
+                            <button
+                              type="submit"
+                              className="rounded-xl border border-[rgba(153,27,27,0.2)] bg-white px-4 py-2 text-sm font-semibold text-[rgb(153,27,27)] transition hover:bg-[rgb(254,242,242)]"
+                            >
+                              Excluir
+                            </button>
+                          </form>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="rounded-[24px] border border-dashed border-[var(--border)] bg-[var(--panel)] px-6 py-10 text-center">
+                <p className="text-base font-semibold text-[var(--foreground)]">
+                  Nenhum professor cadastrado ainda.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
