@@ -1,4 +1,4 @@
-import { createTeacherAction, deleteTeacherAction, updateTeacherAction } from "./actions";
+Ôªøimport { createTeacherAction, deleteTeacherAction, updateTeacherAction } from "./actions";
 import { getTeacherManagementData } from "@/lib/organization/queries";
 
 type PageProps = {
@@ -84,7 +84,7 @@ export default async function TeachersPage({ searchParams }: PageProps) {
                 Professores cadastrados
               </p>
               <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">
-                Consulte quantas turmas cada professor atende e quais s„o elas.
+                Consulte quantas turmas cada professor atende e quais s√£o elas.
               </p>
             </div>
             <div className="rounded-full bg-[var(--panel)] px-4 py-2 text-sm font-semibold text-[var(--foreground)]">
@@ -120,7 +120,7 @@ export default async function TeachersPage({ searchParams }: PageProps) {
                                 key={className}
                                 className="text-sm text-[var(--muted-foreground)]"
                               >
-                                ï {className}
+                                ‚Ä¢ {className}
                               </p>
                             ))
                           ) : (
@@ -194,3 +194,4 @@ export default async function TeachersPage({ searchParams }: PageProps) {
     </section>
   );
 }
+

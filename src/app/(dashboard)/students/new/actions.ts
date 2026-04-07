@@ -1,4 +1,4 @@
-"use server";
+Ôªø"use server";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -35,7 +35,7 @@ export async function createStudentAction(formData: FormData) {
     .single();
 
   if (studentError || !student) {
-    redirect("/students/new?error=N„o+foi+possÌvel+salvar+o+aluno");
+    redirect("/students/new?error=N√£o+foi+poss√≠vel+salvar+o+aluno");
   }
 
   const guardianPayloads = [
@@ -50,7 +50,7 @@ export async function createStudentAction(formData: FormData) {
 
     if (error) {
       await supabase.from("students").delete().eq("id", student.id);
-      redirect("/students/new?error=Erro+ao+salvar+os+respons·veis");
+      redirect("/students/new?error=Erro+ao+salvar+os+respons√°veis");
     }
   }
 
@@ -61,7 +61,7 @@ export async function createStudentAction(formData: FormData) {
 
     if (error) {
       await supabase.from("students").delete().eq("id", student.id);
-      redirect("/students/new?error=Erro+ao+salvar+o+respons·vel+financeiro");
+      redirect("/students/new?error=Erro+ao+salvar+o+respons√°vel+financeiro");
     }
   }
 
@@ -82,9 +82,9 @@ export async function createStudentAction(formData: FormData) {
     const title =
       getTextValue(formData, "payment_title") ??
       (paymentType === "enrollment_fee"
-        ? "Taxa de matrÌcula"
+        ? "Taxa de matr√≠cula"
         : paymentType === "re_enrollment_fee"
-          ? "Taxa de rematrÌcula"
+          ? "Taxa de rematr√≠cula"
           : "Mensalidade");
 
     const paymentPlanPayload: Database["public"]["Tables"]["student_payment_plans"]["Insert"] = {
@@ -106,7 +106,7 @@ export async function createStudentAction(formData: FormData) {
 
     if (paymentPlanError || !paymentPlan) {
       await supabase.from("students").delete().eq("id", student.id);
-      redirect("/students/new?error=N„o+foi+possÌvel+salvar+o+primeiro+pagamento");
+      redirect("/students/new?error=N√£o+foi+poss√≠vel+salvar+o+primeiro+pagamento");
     }
 
     const installments: Database["public"]["Tables"]["student_payment_installments"]["Insert"][] = [];
@@ -163,7 +163,7 @@ export async function createStudentAction(formData: FormData) {
     if (installmentsError) {
       await supabase.from("student_payment_plans").delete().eq("id", paymentPlan.id);
       await supabase.from("students").delete().eq("id", student.id);
-      redirect("/students/new?error=N„o+foi+possÌvel+salvar+as+parcelas");
+      redirect("/students/new?error=N√£o+foi+poss√≠vel+salvar+as+parcelas");
     }
   }
 
@@ -171,6 +171,7 @@ export async function createStudentAction(formData: FormData) {
   revalidatePath("/dashboard");
   redirect(`/students?created=${encodeURIComponent(getRequiredTextValue(formData, "full_name", "Aluno"))}`);
 }
+
 
 
 
