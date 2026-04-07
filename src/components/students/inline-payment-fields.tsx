@@ -1,4 +1,4 @@
-Ôªø"use client";
+"use client";
 
 import { useState } from "react";
 
@@ -22,16 +22,17 @@ function rebuildInstallments(
   totalAmount: string,
   defaultPaymentMethod: string,
   baseDate: string,
-) {
+): InstallmentState[] {
   const defaultAmount = formatAmountPerInstallment(totalAmount, count);
   const autoResolved = defaultPaymentMethod === CREDIT_CARD_METHOD;
+  const status: InstallmentState["status"] = autoResolved ? "resolved" : "pending";
 
   return Array.from({ length: count }, (_, index) => ({
     amount: defaultAmount,
     paymentMethod: defaultPaymentMethod,
     dueDate: addMonthsToDate(baseDate, index),
     paidAt: autoResolved ? baseDate : "",
-    status: autoResolved ? "resolved" : "pending",
+    status,
     description: "",
   }));
 }
@@ -121,7 +122,7 @@ export function InlinePaymentFields() {
             Pagamentos
           </p>
           <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">
-            Se quiser, j√° deixe a taxa ou a primeira mensalidade cadastrada ao criar o aluno.
+            Se quiser, j· deixe a taxa ou a primeira mensalidade cadastrada ao criar o aluno.
           </p>
         </div>
 
@@ -147,14 +148,14 @@ export function InlinePaymentFields() {
                 onChange={(event) => handlePaymentTypeChange(event.target.value)}
                 className="mt-2 w-full rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[rgba(182,133,58,0.18)]"
               >
-                <option value="enrollment_fee">Taxa de matr√≠cula</option>
-                <option value="re_enrollment_fee">Taxa de rematr√≠cula</option>
+                <option value="enrollment_fee">Taxa de matrÌcula</option>
+                <option value="re_enrollment_fee">Taxa de rematrÌcula</option>
                 <option value="monthly_payment">Mensalidade</option>
               </select>
             </label>
 
             <label className="block text-sm font-medium text-[var(--foreground)]">
-              T√≠tulo
+              TÌtulo
               <input
                 name="payment_title"
                 placeholder="Ex.: Mensalidade abril"
@@ -174,7 +175,7 @@ export function InlinePaymentFields() {
             </label>
 
             <label className="block text-sm font-medium text-[var(--foreground)]">
-              Forma de pagamento padr√£o
+              Forma de pagamento padr„o
               <select
                 name="payment_default_method"
                 value={defaultPaymentMethod}
@@ -213,7 +214,7 @@ export function InlinePaymentFields() {
             </label>
 
             <label className="block text-sm font-medium text-[var(--foreground)]">
-              N√∫mero de parcelas
+              N˙mero de parcelas
               <input
                 name="payment_installment_count"
                 type="number"
@@ -227,25 +228,25 @@ export function InlinePaymentFields() {
           </div>
 
           <label className="block text-sm font-medium text-[var(--foreground)]">
-            Observa√ß√µes do pagamento
+            ObservaÁıes do pagamento
             <textarea
               name="payment_notes"
               rows={4}
               className="mt-2 w-full rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[rgba(182,133,58,0.18)]"
-              placeholder="Observa√ß√µes sobre essa cobran√ßa."
+              placeholder="ObservaÁıes sobre essa cobranÁa."
             />
           </label>
 
           {defaultPaymentMethod === CREDIT_CARD_METHOD ? (
             <div className="rounded-2xl border border-[rgba(22,101,52,0.16)] bg-[rgba(240,253,244,0.92)] px-4 py-3 text-sm leading-6 text-[rgb(21,128,61)]">
-              Pagamentos em cart√£o de cr√©dito j√° ficam como resolvidos no momento do cadastro.
+              Pagamentos em cart„o de crÈdito j· ficam como resolvidos no momento do cadastro.
             </div>
           ) : null}
 
           {baseDate ? (
             <div className="rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm leading-6 text-[var(--muted-foreground)]">
-              A primeira parcela ficar√° em <strong>{new Date(`${baseDate}T12:00:00`).toLocaleDateString("pt-BR")}</strong>{" "}
-              e as pr√≥ximas seguir√£o no mesmo dia dos meses subsequentes.
+              A primeira parcela ficar· em <strong>{new Date(`${baseDate}T12:00:00`).toLocaleDateString("pt-BR")}</strong>{" "}
+              e as prÛximas seguir„o no mesmo dia dos meses subsequentes.
             </div>
           ) : null}
 
@@ -277,7 +278,7 @@ export function InlinePaymentFields() {
                   </label>
 
                   <label className="block text-sm font-medium text-[var(--foreground)]">
-                    M√©todo
+                    MÈtodo
                     <select
                       name={`payment_installment_method_${index + 1}`}
                       value={installment.paymentMethod}
@@ -329,7 +330,7 @@ export function InlinePaymentFields() {
                   </label>
 
                   <label className="block text-sm font-medium text-[var(--foreground)]">
-                    Descri√ß√£o
+                    DescriÁ„o
                     <input
                       name={`payment_installment_description_${index + 1}`}
                       value={installment.description}

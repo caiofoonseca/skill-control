@@ -1,4 +1,4 @@
-Ôªø"use client";
+"use client";
 
 import Link from "next/link";
 import { useState } from "react";
@@ -32,13 +32,14 @@ function buildInstallment(
   baseDate = "",
 ): InstallmentState {
   const autoResolved = paymentMethod === CREDIT_CARD_METHOD;
+  const status: InstallmentState["status"] = autoResolved ? "resolved" : "pending";
 
   return {
     amount,
     paymentMethod,
     dueDate: addMonthsToDate(baseDate, index),
     paidAt: autoResolved ? baseDate : "",
-    status: autoResolved ? "resolved" : "pending",
+    status,
     description: "",
   };
 }
@@ -48,16 +49,17 @@ function rebuildInstallments(
   totalAmount: string,
   defaultPaymentMethod: string,
   baseDate: string,
-) {
+): InstallmentState[] {
   const defaultAmount = formatAmountPerInstallment(totalAmount, count);
   const autoResolved = defaultPaymentMethod === CREDIT_CARD_METHOD;
+  const status: InstallmentState["status"] = autoResolved ? "resolved" : "pending";
 
   return Array.from({ length: count }, (_, index) => ({
     amount: defaultAmount,
     paymentMethod: defaultPaymentMethod,
     dueDate: addMonthsToDate(baseDate, index),
     paidAt: autoResolved ? baseDate : "",
-    status: autoResolved ? "resolved" : "pending",
+    status,
     description: "",
   }));
 }
@@ -176,14 +178,14 @@ export function PaymentPlanForm({
                 onChange={(event) => handlePaymentTypeChange(event.target.value)}
                 className="mt-2 w-full rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[rgba(182,133,58,0.18)]"
               >
-                <option value="enrollment_fee">Taxa de matr√≠cula</option>
-                <option value="re_enrollment_fee">Taxa de rematr√≠cula</option>
+                <option value="enrollment_fee">Taxa de matrÌcula</option>
+                <option value="re_enrollment_fee">Taxa de rematrÌcula</option>
                 <option value="monthly_payment">Mensalidade</option>
               </select>
             </label>
 
             <label className="block text-sm font-medium text-[var(--foreground)]">
-              T√≠tulo
+              TÌtulo
               <input
                 name="title"
                 placeholder="Ex.: Mensalidade abril"
@@ -204,7 +206,7 @@ export function PaymentPlanForm({
             </label>
 
             <label className="block text-sm font-medium text-[var(--foreground)]">
-              Forma de pagamento padr√£o
+              Forma de pagamento padr„o
               <select
                 name="default_payment_method"
                 value={defaultPaymentMethod}
@@ -243,7 +245,7 @@ export function PaymentPlanForm({
             </label>
 
             <label className="block text-sm font-medium text-[var(--foreground)]">
-              N√∫mero de parcelas
+              N˙mero de parcelas
               <input
                 name="installment_count"
                 type="number"
@@ -257,25 +259,25 @@ export function PaymentPlanForm({
           </div>
 
           <label className="mt-4 block text-sm font-medium text-[var(--foreground)]">
-            Observa√ß√µes
+            ObservaÁıes
             <textarea
               name="notes"
               rows={4}
               className="mt-2 w-full rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[rgba(182,133,58,0.18)]"
-              placeholder="Observa√ß√µes gerais sobre esse pagamento."
+              placeholder="ObservaÁıes gerais sobre esse pagamento."
             />
           </label>
 
           {defaultPaymentMethod === CREDIT_CARD_METHOD ? (
             <div className="mt-4 rounded-2xl border border-[rgba(22,101,52,0.16)] bg-[rgba(240,253,244,0.92)] px-4 py-3 text-sm leading-6 text-[rgb(21,128,61)]">
-              Pagamentos em cart√£o de cr√©dito j√° ficam como resolvidos no momento do cadastro.
+              Pagamentos em cart„o de crÈdito j· ficam como resolvidos no momento do cadastro.
             </div>
           ) : null}
 
           {baseDate ? (
             <div className="mt-4 rounded-2xl border border-[var(--border)] bg-[var(--panel)] px-4 py-3 text-sm leading-6 text-[var(--muted-foreground)]">
-              A primeira parcela ficar√° em <strong>{new Date(`${baseDate}T12:00:00`).toLocaleDateString("pt-BR")}</strong>{" "}
-              e as pr√≥ximas seguir√£o no mesmo dia dos meses subsequentes.
+              A primeira parcela ficar· em <strong>{new Date(`${baseDate}T12:00:00`).toLocaleDateString("pt-BR")}</strong>{" "}
+              e as prÛximas seguir„o no mesmo dia dos meses subsequentes.
             </div>
           ) : null}
         </div>
@@ -287,7 +289,7 @@ export function PaymentPlanForm({
                 Parcelas
               </p>
               <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">
-                Ajuste os dados de cada parcela. As datas j√° s√£o sugeridas a partir da data-base informada.
+                Ajuste os dados de cada parcela. As datas j· s„o sugeridas a partir da data-base informada.
               </p>
             </div>
             <div className="rounded-full bg-[var(--panel)] px-4 py-2 text-sm font-semibold text-[var(--foreground)]">
@@ -324,7 +326,7 @@ export function PaymentPlanForm({
                   </label>
 
                   <label className="block text-sm font-medium text-[var(--foreground)]">
-                    M√©todo de pagamento
+                    MÈtodo de pagamento
                     <select
                       name={`installment_payment_method_${index + 1}`}
                       value={installment.paymentMethod}
@@ -376,7 +378,7 @@ export function PaymentPlanForm({
                   </label>
 
                   <label className="block text-sm font-medium text-[var(--foreground)] md:col-span-2 xl:col-span-1">
-                    Descri√ß√£o
+                    DescriÁ„o
                     <input
                       name={`installment_description_${index + 1}`}
                       value={installment.description}

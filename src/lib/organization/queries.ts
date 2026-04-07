@@ -1,4 +1,40 @@
-﻿import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+
+type TeacherOption = {
+  id: string;
+  name: string;
+};
+
+type ClassOptionRow = {
+  id: string;
+  name: string;
+  teacher_id: string | null;
+  teachers?: { name: string | null } | { name: string | null }[] | null;
+};
+
+type StudentClassUsageRow = {
+  id: string;
+  class_name: string | null;
+};
+
+type StudentTeacherUsageRow = {
+  id: string;
+  teacher_name: string | null;
+};
+
+type MonthlyBirthdayRow = {
+  id: string;
+  full_name: string;
+  birth_date: string | null;
+};
+
+function getTeacherName(value: ClassOptionRow["teachers"]) {
+  if (Array.isArray(value)) {
+    return value[0]?.name ?? null;
+  }
+
+  return value?.name ?? null;
+}
 
 export async function getStudentOptions() {
   const supabase = await createSupabaseServerClient();
@@ -16,17 +52,17 @@ export async function getStudentOptions() {
       .order("name", { ascending: true }),
   ]);
 
+  const classRows = (classes ?? []) as ClassOptionRow[];
+  const teacherRows = (teachers ?? []) as TeacherOption[];
+
   return {
-    classOptions:
-      classes?.map((item) => ({
-        id: item.id,
-        name: item.name,
-        teacherId: item.teacher_id,
-        teacherName: Array.isArray(item.teachers)
-          ? item.teachers[0]?.name ?? null
-          : item.teachers?.name ?? null,
-      })) ?? [],
-    teacherOptions: teachers ?? [],
+    classOptions: classRows.map((item) => ({
+      id: item.id,
+      name: item.name,
+      teacherId: item.teacher_id,
+      teacherName: getTeacherName(item.teachers),
+    })),
+    teacherOptions: teacherRows,
   };
 }
 
@@ -41,18 +77,18 @@ export async function getClassManagementData() {
     supabase.from("students").select("id, class_name"),
   ]);
 
+  const classRows = (classes ?? []) as ClassOptionRow[];
+  const studentRows = (students ?? []) as StudentClassUsageRow[];
   const usageMap = new Map<string, number>();
 
-  for (const student of students ?? []) {
+  for (const student of studentRows) {
     if (!student.class_name) continue;
     usageMap.set(student.class_name, (usageMap.get(student.class_name) ?? 0) + 1);
   }
 
-  return (classes ?? []).map((item) => ({
+  return classRows.map((item) => ({
     ...item,
-    teacherName: Array.isArray(item.teachers)
-      ? item.teachers[0]?.name ?? null
-      : item.teachers?.name ?? null,
+    teacherName: getTeacherName(item.teachers),
     studentCount: usageMap.get(item.name) ?? 0,
   }));
 }
@@ -66,15 +102,18 @@ export async function getTeacherManagementData() {
     supabase.from("course_classes").select("id, name, teacher_id").order("name", { ascending: true }),
   ]);
 
+  const teacherRows = (teachers ?? []) as TeacherOption[];
+  const studentRows = (students ?? []) as StudentTeacherUsageRow[];
+  const classRows = (classes ?? []) as Array<Pick<ClassOptionRow, "id" | "name" | "teacher_id">>;
   const usageMap = new Map<string, number>();
 
-  for (const student of students ?? []) {
+  for (const student of studentRows) {
     if (!student.teacher_name) continue;
     usageMap.set(student.teacher_name, (usageMap.get(student.teacher_name) ?? 0) + 1);
   }
 
-  return (teachers ?? []).map((item) => {
-    const linkedClasses = (classes ?? []).filter((courseClass) => courseClass.teacher_id === item.id);
+  return teacherRows.map((item) => {
+    const linkedClasses = classRows.filter((courseClass) => courseClass.teacher_id === item.id);
 
     return {
       ...item,
@@ -95,7 +134,9 @@ export async function getMonthlyBirthdays() {
     .not("birth_date", "is", null)
     .order("full_name", { ascending: true });
 
-  return (data ?? [])
+  const students = (data ?? []) as MonthlyBirthdayRow[];
+
+  return students
     .filter((student) => {
       if (!student.birth_date) return false;
       return new Date(`${student.birth_date}T12:00:00`).getMonth() + 1 === currentMonth;
