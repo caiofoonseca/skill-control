@@ -5,9 +5,9 @@ export const metadata: Metadata = {
   title: "Skill Control",
   description: "Painel administrativo do SkillEd Idiomas - Graças, Recife.",
   icons: {
-    icon: "/brand/skill-logo.png",
-    shortcut: "/brand/skill-logo.png",
-    apple: "/brand/skill-logo.png",
+    icon: "/brand/skill-favicon.svg",
+    shortcut: "/brand/skill-favicon.svg",
+    apple: "/brand/skill-favicon.svg",
   },
 };
 
