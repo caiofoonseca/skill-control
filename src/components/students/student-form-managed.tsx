@@ -67,6 +67,13 @@ type ClassOption = {
   teacherId: string | null;
   teacherName: string | null;
 };
+type ExistingPaymentPlan = {
+  id: string;
+  title: string;
+  totalAmount: string;
+  installmentCount: number;
+  paymentType: string;
+};
 
 function inputClassName() {
   return "mt-2 w-full rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[rgba(182,133,58,0.18)]";
@@ -112,6 +119,8 @@ type StudentFormProps = {
   values?: FormValues;
   classOptions: ClassOption[];
   teacherOptions: TeacherOption[];
+  studentId?: string;
+  existingPayments?: ExistingPaymentPlan[];
 };
 
 export function StudentFormManaged({
@@ -124,6 +133,8 @@ export function StudentFormManaged({
   values,
   classOptions,
   teacherOptions,
+  studentId,
+  existingPayments = [],
 }: StudentFormProps) {
   const [selectedClassName, setSelectedClassName] = useState(values?.class_name ?? "");
   const [teacherName, setTeacherName] = useState(values?.teacher_name ?? "");
@@ -210,7 +221,7 @@ export function StudentFormManaged({
               </select>
             </label>
           </div>
-          <InlinePaymentFields />
+          <InlinePaymentFields studentId={studentId} existingPayments={existingPayments} />
         </div>
 
         <div className="grid gap-6 xl:grid-cols-2">

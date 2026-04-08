@@ -1,5 +1,6 @@
 ﻿"use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 import { CREDIT_CARD_METHOD, PAYMENT_METHOD_OPTIONS } from "@/lib/payments/constants";
@@ -15,6 +16,14 @@ type InstallmentState = {
   paidAt: string;
   status: "pending" | "resolved";
   description: string;
+};
+
+type ExistingPaymentPlan = {
+  id: string;
+  title: string;
+  totalAmount: string;
+  installmentCount: number;
+  paymentType: string;
 };
 
 function rebuildInstallments(
@@ -37,7 +46,38 @@ function rebuildInstallments(
   }));
 }
 
-export function InlinePaymentFields() {
+function formatCurrency(value: string) {
+  if (!value) {
+    return "-";
+  }
+
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(Number(value));
+}
+
+function getPaymentTypeLabel(paymentType: string) {
+  switch (paymentType) {
+    case "enrollment_fee":
+      return "Matrícula";
+    case "re_enrollment_fee":
+      return "Rematrícula";
+    case "monthly_payment":
+      return "Mensalidade";
+    default:
+      return "Pagamento";
+  }
+}
+
+export function InlinePaymentFields({
+  studentId,
+  existingPayments = [],
+}: {
+  studentId?: string;
+  existingPayments?: ExistingPaymentPlan[];
+}) {
+  const hasExistingPayments = existingPayments.length > 0;
   const [enabled, setEnabled] = useState(false);
   const [paymentType, setPaymentType] = useState("monthly_payment");
   const [isInstallment, setIsInstallment] = useState(false);
@@ -122,22 +162,62 @@ export function InlinePaymentFields() {
             Pagamentos
           </p>
           <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">
-            Se quiser, já deixe a taxa ou a primeira mensalidade cadastrada ao criar o aluno.
+            {hasExistingPayments
+              ? "Este aluno já possui pagamentos cadastrados. Você pode consultá-los ou adicionar uma nova cobrança."
+              : "Se quiser, já deixe a taxa ou a primeira mensalidade cadastrada ao criar o aluno."}
           </p>
         </div>
 
-        <label className="inline-flex items-center gap-3 rounded-xl border border-[var(--border)] bg-white px-4 py-3 text-sm font-semibold text-[var(--foreground)]">
-          <input
-            type="checkbox"
-            name="create_initial_payment"
-            checked={enabled}
-            onChange={(event) => setEnabled(event.target.checked)}
-          />
-          Adicionar primeiro pagamento
-        </label>
+        {hasExistingPayments ? (
+          <div className="flex flex-wrap gap-3">
+            {studentId ? (
+              <Link
+                href={`/students/${studentId}#pagamentos-do-aluno`}
+                className="rounded-xl border border-[var(--border)] bg-white px-4 py-3 text-sm font-semibold text-[var(--foreground)] transition hover:bg-[var(--panel)]"
+              >
+                Visualizar pagamentos
+              </Link>
+            ) : null}
+            {studentId ? (
+              <Link
+                href={`/students/${studentId}/payments/new`}
+                className="rounded-xl bg-[var(--primary)] px-4 py-3 text-sm font-semibold text-white transition hover:opacity-95"
+              >
+                Adicionar pagamento
+              </Link>
+            ) : null}
+          </div>
+        ) : (
+          <label className="inline-flex items-center gap-3 rounded-xl border border-[var(--border)] bg-white px-4 py-3 text-sm font-semibold text-[var(--foreground)]">
+            <input
+              type="checkbox"
+              name="create_initial_payment"
+              checked={enabled}
+              onChange={(event) => setEnabled(event.target.checked)}
+            />
+            Adicionar pagamento
+          </label>
+        )}
       </div>
 
-      {enabled ? (
+      {hasExistingPayments ? (
+        <div className="mt-5 space-y-3">
+          {existingPayments.map((payment) => (
+            <div
+              key={payment.id}
+              className="rounded-2xl border border-[var(--border)] bg-white px-4 py-4"
+            >
+              <p className="text-sm font-semibold text-[var(--foreground)]">{payment.title}</p>
+              <p className="mt-2 text-sm text-[var(--muted-foreground)]">
+                {getPaymentTypeLabel(payment.paymentType)} • {formatCurrency(payment.totalAmount)} • {payment.installmentCount}{" "}
+                {payment.installmentCount === 1 ? "parcela" : "parcelas"}
+              </p>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      {enabled && !hasExistingPayments ? (
         <div className="mt-6 space-y-5">
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             <label className="block text-sm font-medium text-[var(--foreground)]">
@@ -347,4 +427,3 @@ export function InlinePaymentFields() {
     </div>
   );
 }
-

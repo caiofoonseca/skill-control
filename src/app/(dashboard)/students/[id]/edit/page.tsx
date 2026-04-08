@@ -22,7 +22,7 @@ export default async function EditStudentPage({
   const { id } = await params;
   const { error } = await searchParams;
   const { classOptions, teacherOptions } = await getStudentOptions();
-  const { student, guardians, financialContact } = await getStudentDetails(id);
+  const { student, guardians, financialContact, paymentPlans } = await getStudentDetails(id);
 
   if (!student) {
     notFound();
@@ -94,6 +94,14 @@ export default async function EditStudentPage({
       values={values}
       classOptions={classOptions}
       teacherOptions={teacherOptions}
+      studentId={student.id}
+      existingPayments={paymentPlans.map((plan) => ({
+        id: plan.id,
+        title: plan.title,
+        totalAmount: plan.total_amount,
+        installmentCount: plan.installment_count,
+        paymentType: plan.payment_type,
+      }))}
     />
   );
 }
