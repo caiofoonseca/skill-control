@@ -29,7 +29,7 @@ export default async function ClassesPage({ searchParams }: PageProps) {
           Gerenciamento de turmas
         </h2>
         <p className="mt-4 max-w-2xl text-base leading-7 text-[var(--muted-foreground)]">
-          Cadastre e organize as turmas da unidade, associando cada uma ao professor responsável.
+          Cadastre e organize as turmas/horários da unidade, associando cada uma ao professor responsável.
         </p>
       </div>
 
@@ -64,10 +64,10 @@ export default async function ClassesPage({ searchParams }: PageProps) {
           </p>
           <form action={createClassAction} className="mt-5 space-y-4">
             <label className="block text-sm font-medium text-[var(--foreground)]">
-              Nome da turma
+              Turma/Horário
               <input
                 name="name"
-                placeholder="Ex.: Terça e Quinta - 19h"
+                placeholder="Ex.: KIDS CLASS - 15H30 - 17H30"
                 className="mt-2 w-full rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[rgba(182,133,58,0.18)]"
               />
             </label>
@@ -108,7 +108,7 @@ export default async function ClassesPage({ searchParams }: PageProps) {
               </p>
             </div>
             <div className="rounded-full bg-[var(--panel)] px-4 py-2 text-sm font-semibold text-[var(--foreground)]">
-              {classes.length} {classes.length === 1 ? "turma" : "turmas"}
+              {classes.length} {classes.length === 1 ? "turma/horário" : "turmas/horários"}
             </div>
           </div>
 
@@ -200,7 +200,7 @@ export default async function ClassesPage({ searchParams }: PageProps) {
             ) : (
               <div className="rounded-[24px] border border-dashed border-[var(--border)] bg-[var(--panel)] px-6 py-10 text-center">
                 <p className="text-base font-semibold text-[var(--foreground)]">
-                  Nenhuma turma cadastrada ainda.
+                  Nenhuma turma/horário cadastrada ainda.
                 </p>
               </div>
             )}

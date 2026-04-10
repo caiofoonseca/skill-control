@@ -1,4 +1,4 @@
-import { formatMoneyInput, parseMoneyInput } from "@/lib/payments/money";
+import { formatCurrencyFromNumber, parseMoneyInput } from "@/lib/payments/money";
 
 export function formatAmountPerInstallment(totalAmount: string, count: number) {
   const parsed = parseMoneyInput(totalAmount);
@@ -7,7 +7,7 @@ export function formatAmountPerInstallment(totalAmount: string, count: number) {
     return "";
   }
 
-  return formatMoneyInput(parsed / count);
+  return formatCurrencyFromNumber(parsed / count);
 }
 
 function pad(value: number) {

@@ -42,7 +42,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             Acesso interno
           </p>
           <h1 className="text-4xl font-semibold tracking-tight text-[var(--foreground)] sm:text-5xl">
-            Painel privado da Skill Idiomas
+            Gestão Escolar - Skill Idiomas
           </h1>
           <p className="mt-6 max-w-xl text-lg leading-8 text-[var(--muted-foreground)]">
             Acesso exclusivo para a equipe administrativa da escola
@@ -53,7 +53,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           <div className="rounded-[24px] bg-[var(--surface)] p-6 sm:p-8">
             <div className="mb-8">
               <p className="text-sm font-medium text-[var(--accent)]">
-                Skill Control
+                Gestão Escolar - Skill Idiomas
               </p>
               <h2 className="mt-2 text-3xl font-semibold text-[var(--foreground)]">
                 Entrar

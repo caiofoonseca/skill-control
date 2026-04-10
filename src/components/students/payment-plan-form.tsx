@@ -3,7 +3,14 @@
 import Link from "next/link";
 import { useState } from "react";
 
-import { CREDIT_CARD_METHOD, PAYMENT_METHOD_OPTIONS } from "@/lib/payments/constants";
+import {
+  canBeInstallmentPayment,
+  CREDIT_CARD_METHOD,
+  getDefaultPaymentTitle,
+  PAYMENT_METHOD_OPTIONS,
+  PAYMENT_TYPE_OPTIONS,
+} from "@/lib/payments/constants";
+import { formatCurrencyInput } from "@/lib/payments/money";
 import {
   addMonthsToDate,
   formatAmountPerInstallment,
@@ -70,7 +77,7 @@ export function PaymentPlanForm({
   action,
   error,
 }: PaymentPlanFormProps) {
-  const [paymentType, setPaymentType] = useState("monthly_payment");
+  const [paymentType, setPaymentType] = useState("installments");
   const [isInstallment, setIsInstallment] = useState(false);
   const [installmentCount, setInstallmentCount] = useState(1);
   const [totalAmount, setTotalAmount] = useState("");
@@ -93,11 +100,11 @@ export function PaymentPlanForm({
   }
 
   function handlePaymentTypeChange(value: string) {
-    const monthlyPayment = value === "monthly_payment";
-    const nextCount = monthlyPayment && isInstallment ? installmentCount : 1;
+    const canInstall = canBeInstallmentPayment(value);
+    const nextCount = canInstall && isInstallment ? installmentCount : 1;
 
     setPaymentType(value);
-    setIsInstallment(monthlyPayment ? isInstallment : false);
+    setIsInstallment(canInstall ? isInstallment : false);
     setInstallmentCount(nextCount);
     setInstallments(rebuildInstallments(nextCount, totalAmount, defaultPaymentMethod, baseDate));
   }
@@ -119,9 +126,10 @@ export function PaymentPlanForm({
 
   function handleTotalAmountChange(value: string) {
     const count = isInstallment ? installmentCount : 1;
+    const nextValue = formatCurrencyInput(value);
 
-    setTotalAmount(value);
-    setInstallments(rebuildInstallments(count, value, defaultPaymentMethod, baseDate));
+    setTotalAmount(nextValue);
+    setInstallments(rebuildInstallments(count, nextValue, defaultPaymentMethod, baseDate));
   }
 
   function handleDefaultPaymentMethodChange(value: string) {
@@ -149,7 +157,7 @@ export function PaymentPlanForm({
             Novo pagamento
           </h2>
           <p className="mt-4 max-w-2xl text-base leading-7 text-[var(--muted-foreground)]">
-            Registre uma taxa ou mensalidade para {studentName} e organize as parcelas do pagamento.
+            Registre um pagamento para {studentName} e organize as parcelas.
           </p>
         </div>
 
@@ -178,9 +186,11 @@ export function PaymentPlanForm({
                 onChange={(event) => handlePaymentTypeChange(event.target.value)}
                 className="mt-2 w-full rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[rgba(182,133,58,0.18)]"
               >
-                <option value="enrollment_fee">Taxa de matrícula</option>
-                <option value="re_enrollment_fee">Taxa de rematrícula</option>
-                <option value="monthly_payment">Mensalidade</option>
+                {PAYMENT_TYPE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
             </label>
 
@@ -188,7 +198,7 @@ export function PaymentPlanForm({
               Título
               <input
                 name="title"
-                placeholder="Ex.: Mensalidade abril"
+                placeholder={`Ex.: ${getDefaultPaymentTitle(paymentType)}`}
                 className="mt-2 w-full rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[rgba(182,133,58,0.18)]"
               />
             </label>
@@ -199,7 +209,8 @@ export function PaymentPlanForm({
                 name="total_amount"
                 value={totalAmount}
                 onChange={(event) => handleTotalAmountChange(event.target.value)}
-                placeholder="0,00"
+                inputMode="numeric"
+                placeholder="R$ 0,00"
                 className="mt-2 w-full rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[rgba(182,133,58,0.18)]"
                 required
               />
@@ -239,7 +250,7 @@ export function PaymentPlanForm({
                 name="is_installment"
                 checked={isInstallment}
                 onChange={(event) => handleInstallmentToggle(event.target.checked)}
-                disabled={paymentType !== "monthly_payment"}
+                disabled={!canBeInstallmentPayment(paymentType)}
               />
               Parcelado
             </label>
@@ -276,7 +287,7 @@ export function PaymentPlanForm({
 
           {baseDate ? (
             <div className="mt-4 rounded-2xl border border-[var(--border)] bg-[var(--panel)] px-4 py-3 text-sm leading-6 text-[var(--muted-foreground)]">
-              A primeira parcela ficará em <strong>{new Date(`${baseDate}T12:00:00`).toLocaleDateString("pt-BR")}</strong>{" "}
+              Em caso de parcelamento, a primeira parcela ficará em <strong>{new Date(`${baseDate}T12:00:00`).toLocaleDateString("pt-BR")}</strong>{" "}
               e as próximas seguirão no mesmo dia dos meses subsequentes.
             </div>
           ) : null}
@@ -319,7 +330,8 @@ export function PaymentPlanForm({
                     <input
                       name={`installment_amount_${index + 1}`}
                       value={installment.amount}
-                      onChange={(event) => updateInstallment(index, "amount", event.target.value)}
+                      onChange={(event) => updateInstallment(index, "amount", formatCurrencyInput(event.target.value))}
+                      inputMode="numeric"
                       className="mt-2 w-full rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[rgba(182,133,58,0.18)]"
                       required
                     />

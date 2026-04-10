@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { normalizeMoney } from "@/lib/payments/money";
-import { isCreditCardMethod } from "@/lib/payments/constants";
+import { getDefaultPaymentTitle, isCreditCardMethod, PAYMENT_TYPE_OPTIONS } from "@/lib/payments/constants";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/types/supabase";
 import {
@@ -13,13 +13,23 @@ import {
   buildStudentPayload,
   getRequiredTextValue,
   getTextValue,
+  validateStudentForm,
   type GuardianInsert,
 } from "@/lib/students/form-helpers";
-export async function createStudentAction(formData: FormData) {
-  const fullName = getTextValue(formData, "full_name");
 
-  if (!fullName) {
-    redirect("/students/new?error=Preencha+o+nome+do+aluno");
+function isMissingNewStudentColumn(error: { message?: string } | null) {
+  return error?.message?.includes("is_active") || error?.message?.includes("language") || false;
+}
+
+function isValidPaymentType(value: string | null) {
+  return Boolean(value && PAYMENT_TYPE_OPTIONS.some((option) => option.value === value));
+}
+
+export async function createStudentAction(formData: FormData) {
+  const validationError = validateStudentForm(formData);
+
+  if (validationError) {
+    redirect(`/students/new?error=${encodeURIComponent(validationError)}`);
   }
 
   const supabase = await createSupabaseServerClient();
@@ -28,11 +38,25 @@ export async function createStudentAction(formData: FormData) {
     formData,
   ) as Database["public"]["Tables"]["students"]["Insert"];
 
-  const { data: student, error: studentError } = await supabase
+  let createResult = await supabase
     .from("students")
     .insert(studentPayload)
     .select("id")
     .single();
+
+  if (isMissingNewStudentColumn(createResult.error)) {
+    const compatibleStudentPayload = { ...studentPayload };
+    delete compatibleStudentPayload.is_active;
+    delete compatibleStudentPayload.language;
+
+    createResult = await supabase
+      .from("students")
+      .insert(compatibleStudentPayload)
+      .select("id")
+      .single();
+  }
+
+  const { data: student, error: studentError } = createResult;
 
   if (studentError || !student) {
     redirect("/students/new?error=Não+foi+possível+salvar+o+aluno");
@@ -73,23 +97,19 @@ export async function createStudentAction(formData: FormData) {
     const defaultPaymentMethod = getTextValue(formData, "payment_default_method");
     const paymentBaseDate = getTextValue(formData, "payment_base_date");
 
-    if (!paymentType || !totalAmount) {
+    if (!isValidPaymentType(paymentType) || !totalAmount) {
       await supabase.from("students").delete().eq("id", student.id);
       redirect("/students/new?error=Preencha+os+dados+do+primeiro+pagamento");
     }
 
     const effectiveCount = isInstallment ? Math.max(installmentCount, 1) : 1;
+    const effectivePaymentType = paymentType ?? "installments";
     const title =
-      getTextValue(formData, "payment_title") ??
-      (paymentType === "enrollment_fee"
-        ? "Taxa de matrícula"
-        : paymentType === "re_enrollment_fee"
-          ? "Taxa de rematrícula"
-          : "Mensalidade");
+      getTextValue(formData, "payment_title") ?? getDefaultPaymentTitle(effectivePaymentType);
 
     const paymentPlanPayload: Database["public"]["Tables"]["student_payment_plans"]["Insert"] = {
       student_id: student.id,
-      payment_type: paymentType as Database["public"]["Tables"]["student_payment_plans"]["Row"]["payment_type"],
+      payment_type: effectivePaymentType as Database["public"]["Tables"]["student_payment_plans"]["Row"]["payment_type"],
       title,
       total_amount: totalAmount,
       is_installment: isInstallment,

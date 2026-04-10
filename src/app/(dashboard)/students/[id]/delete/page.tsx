@@ -1,6 +1,7 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
 import { getStudentDetails } from "@/lib/students/queries";
 
 import { deleteStudentAction } from "../edit/actions";
@@ -57,7 +58,7 @@ export default async function DeleteStudentPage({
           {student.full_name}
         </p>
         <p className="mt-2 text-sm text-[var(--muted-foreground)]">
-          Turma: {student.class_name ?? "-"} • Professor: {student.teacher_name ?? "-"}
+          Turma/Horário: {student.class_name ?? "-"} • Professor: {student.teacher_name ?? "-"}
         </p>
 
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -68,12 +69,12 @@ export default async function DeleteStudentPage({
             Cancelar
           </Link>
           <form action={boundDeleteAction}>
-            <button
-              type="submit"
+            <ConfirmSubmitButton
+              message="Deseja excluir o aluno?"
               className="w-full rounded-xl bg-[rgb(153,27,27)] px-5 py-3 text-sm font-semibold text-white transition hover:opacity-95"
             >
               Confirmar exclusão
-            </button>
+            </ConfirmSubmitButton>
           </form>
         </div>
       </div>

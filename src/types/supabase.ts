@@ -58,6 +58,8 @@ export type Database = {
           payment_notes: string | null;
           current_book: string | null;
           source: string | null;
+          is_active: boolean;
+          language: string;
         };
         Insert: {
           id?: string;
@@ -84,6 +86,8 @@ export type Database = {
           payment_notes?: string | null;
           current_book?: string | null;
           source?: string | null;
+          is_active?: boolean;
+          language?: string;
         };
         Update: {
           full_name?: string;
@@ -107,6 +111,8 @@ export type Database = {
           payment_notes?: string | null;
           current_book?: string | null;
           source?: string | null;
+          is_active?: boolean;
+          language?: string;
         };
       };
       student_guardians: {
@@ -198,7 +204,16 @@ export type Database = {
           student_id: string;
           created_at: string;
           updated_at: string;
-          payment_type: "enrollment_fee" | "re_enrollment_fee" | "monthly_payment";
+          payment_type:
+            | "enrollment"
+            | "enrollment_first_installment"
+            | "installments"
+            | "full_course"
+            | "course_material"
+            | "down_payment"
+            | "enrollment_fee"
+            | "re_enrollment_fee"
+            | "monthly_payment";
           title: string;
           total_amount: string;
           is_installment: boolean;
@@ -211,7 +226,16 @@ export type Database = {
           student_id: string;
           created_at?: string;
           updated_at?: string;
-          payment_type: "enrollment_fee" | "re_enrollment_fee" | "monthly_payment";
+          payment_type:
+            | "enrollment"
+            | "enrollment_first_installment"
+            | "installments"
+            | "full_course"
+            | "course_material"
+            | "down_payment"
+            | "enrollment_fee"
+            | "re_enrollment_fee"
+            | "monthly_payment";
           title: string;
           total_amount: string;
           is_installment?: boolean;
@@ -226,7 +250,16 @@ export type Database = {
           installment_count?: number;
           default_payment_method?: string | null;
           notes?: string | null;
-          payment_type?: "enrollment_fee" | "re_enrollment_fee" | "monthly_payment";
+          payment_type?:
+            | "enrollment"
+            | "enrollment_first_installment"
+            | "installments"
+            | "full_course"
+            | "course_material"
+            | "down_payment"
+            | "enrollment_fee"
+            | "re_enrollment_fee"
+            | "monthly_payment";
         };
       };
       student_payment_installments: {

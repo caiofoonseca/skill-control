@@ -7,6 +7,7 @@ import {
   updatePaymentInstallmentAction,
 } from "@/app/(dashboard)/students/[id]/actions";
 import { HashScroll } from "@/components/layout/hash-scroll";
+import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
 import { PAYMENT_METHOD_OPTIONS } from "@/lib/payments/constants";
 import { getStudentDetails } from "@/lib/students/queries";
 
@@ -137,15 +138,13 @@ function PaymentPlanSection({
                 <div className="text-sm text-[var(--muted-foreground)]">
                   {plan.default_payment_method || "Forma de pagamento não informada"}
                 </div>
-                <form
-                  action={deletePaymentPlanAction.bind(null, studentId, plan.id)}
-                >
-                  <button
-                    type="submit"
+                <form action={deletePaymentPlanAction.bind(null, studentId, plan.id)}>
+                  <ConfirmSubmitButton
+                    message="Deseja excluir o pagamento?"
                     className="rounded-xl border border-[rgba(153,27,27,0.2)] bg-white px-3 py-2 text-sm font-semibold text-[rgb(153,27,27)] transition hover:bg-[rgb(254,242,242)]"
                   >
                     Excluir cobrança
-                  </button>
+                  </ConfirmSubmitButton>
                 </form>
               </div>
             </div>
@@ -223,8 +222,8 @@ function PaymentPlanSection({
                               >
                                 Salvar
                               </button>
-                              <button
-                                type="submit"
+                              <ConfirmSubmitButton
+                                message="Deseja excluir o pagamento?"
                                 formAction={deleteInstallmentAction.bind(
                                   null,
                                   studentId,
@@ -234,7 +233,7 @@ function PaymentPlanSection({
                                 className="rounded-xl border border-[rgba(153,27,27,0.2)] bg-white px-4 py-2 text-sm font-semibold text-[rgb(153,27,27)] transition hover:bg-[rgb(254,242,242)]"
                               >
                                 Excluir parcela
-                              </button>
+                              </ConfirmSubmitButton>
                             </div>
                           </div>
                         </form>
@@ -277,10 +276,18 @@ export default async function StudentDetailsPage({
   const enrollmentPlans = paymentPlans.filter(
     (plan) =>
       plan.payment_type === "enrollment_fee" ||
-      plan.payment_type === "re_enrollment_fee",
+      plan.payment_type === "re_enrollment_fee" ||
+      plan.payment_type === "enrollment" ||
+      plan.payment_type === "enrollment_first_installment",
   );
   const monthlyPlans = paymentPlans.filter(
-    (plan) => plan.payment_type === "monthly_payment",
+    (plan) => plan.payment_type === "monthly_payment" || plan.payment_type === "installments",
+  );
+  const otherPlans = paymentPlans.filter(
+    (plan) =>
+      plan.payment_type === "full_course" ||
+      plan.payment_type === "course_material" ||
+      plan.payment_type === "down_payment",
   );
 
   return (
@@ -336,6 +343,8 @@ export default async function StudentDetailsPage({
           <DetailGrid
             items={[
               { label: "Nome", value: student.full_name },
+              { label: "Status", value: student.is_active ? "Ativo" : "Inativo" },
+              { label: "Idioma", value: student.language ?? "Ingles" },
               { label: "Endereço", value: student.address },
               { label: "Número", value: student.address_number },
               { label: "Apto", value: student.apartment },
@@ -350,8 +359,7 @@ export default async function StudentDetailsPage({
               { label: "RG", value: student.rg },
               { label: "Celular", value: student.phone },
               { label: "Profissão", value: student.profession },
-              { label: "Turma", value: student.class_name },
-              { label: "Horário", value: student.schedule },
+              { label: "Turma/Horário", value: student.class_name },
               { label: "Professor", value: student.teacher_name },
               { label: "Livro atual", value: student.current_book },
               { label: "Origem", value: student.source },
@@ -455,18 +463,26 @@ export default async function StudentDetailsPage({
         {paymentPlans.length > 0 ? (
           <div className="mt-6 space-y-8">
             <PaymentPlanSection
-              title="Taxas de matrícula e rematrícula"
-              description="Cobranças iniciais do aluno, separadas das mensalidades para facilitar o controle."
+              title="Matrícula"
+              description="Cobranças de matrícula e matrícula com primeira parcela."
               studentId={student.id}
               plans={enrollmentPlans}
               installments={installments}
             />
 
             <PaymentPlanSection
-              title="Mensalidades"
-              description="Parcelas recorrentes do curso, com previsão e status de cada pagamento."
+              title="Parcelas"
+              description="Parcelas do curso, com previsão e status de cada pagamento."
               studentId={student.id}
               plans={monthlyPlans}
+              installments={installments}
+            />
+
+            <PaymentPlanSection
+              title="Outros pagamentos"
+              description="Curso à vista, material didático, entrada e registros anteriores."
+              studentId={student.id}
+              plans={otherPlans}
               installments={installments}
             />
           </div>

@@ -3,7 +3,15 @@
 import Link from "next/link";
 import { useState } from "react";
 
-import { CREDIT_CARD_METHOD, PAYMENT_METHOD_OPTIONS } from "@/lib/payments/constants";
+import {
+  canBeInstallmentPayment,
+  CREDIT_CARD_METHOD,
+  getDefaultPaymentTitle,
+  getPaymentTypeLabel,
+  PAYMENT_METHOD_OPTIONS,
+  PAYMENT_TYPE_OPTIONS,
+} from "@/lib/payments/constants";
+import { formatCurrencyInput } from "@/lib/payments/money";
 import {
   addMonthsToDate,
   formatAmountPerInstallment,
@@ -57,19 +65,6 @@ function formatCurrency(value: string) {
   }).format(Number(value));
 }
 
-function getPaymentTypeLabel(paymentType: string) {
-  switch (paymentType) {
-    case "enrollment_fee":
-      return "Matrícula";
-    case "re_enrollment_fee":
-      return "Rematrícula";
-    case "monthly_payment":
-      return "Mensalidade";
-    default:
-      return "Pagamento";
-  }
-}
-
 export function InlinePaymentFields({
   studentId,
   existingPayments = [],
@@ -79,7 +74,7 @@ export function InlinePaymentFields({
 }) {
   const hasExistingPayments = existingPayments.length > 0;
   const [enabled, setEnabled] = useState(false);
-  const [paymentType, setPaymentType] = useState("monthly_payment");
+  const [paymentType, setPaymentType] = useState("installments");
   const [isInstallment, setIsInstallment] = useState(false);
   const [installmentCount, setInstallmentCount] = useState(1);
   const [totalAmount, setTotalAmount] = useState("");
@@ -97,11 +92,11 @@ export function InlinePaymentFields({
   ]);
 
   function handlePaymentTypeChange(value: string) {
-    const monthlyPayment = value === "monthly_payment";
-    const nextCount = monthlyPayment && isInstallment ? installmentCount : 1;
+    const canInstall = canBeInstallmentPayment(value);
+    const nextCount = canInstall && isInstallment ? installmentCount : 1;
 
     setPaymentType(value);
-    setIsInstallment(monthlyPayment ? isInstallment : false);
+    setIsInstallment(canInstall ? isInstallment : false);
     setInstallmentCount(nextCount);
     setInstallments(rebuildInstallments(nextCount, totalAmount, defaultPaymentMethod, baseDate));
   }
@@ -123,9 +118,10 @@ export function InlinePaymentFields({
 
   function handleTotalAmountChange(value: string) {
     const count = isInstallment ? installmentCount : 1;
+    const nextValue = formatCurrencyInput(value);
 
-    setTotalAmount(value);
-    setInstallments(rebuildInstallments(count, value, defaultPaymentMethod, baseDate));
+    setTotalAmount(nextValue);
+    setInstallments(rebuildInstallments(count, nextValue, defaultPaymentMethod, baseDate));
   }
 
   function handleDefaultPaymentMethodChange(value: string) {
@@ -228,9 +224,11 @@ export function InlinePaymentFields({
                 onChange={(event) => handlePaymentTypeChange(event.target.value)}
                 className="mt-2 w-full rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[rgba(182,133,58,0.18)]"
               >
-                <option value="enrollment_fee">Taxa de matrícula</option>
-                <option value="re_enrollment_fee">Taxa de rematrícula</option>
-                <option value="monthly_payment">Mensalidade</option>
+                {PAYMENT_TYPE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
             </label>
 
@@ -238,7 +236,7 @@ export function InlinePaymentFields({
               Título
               <input
                 name="payment_title"
-                placeholder="Ex.: Mensalidade abril"
+                placeholder={`Ex.: ${getDefaultPaymentTitle(paymentType)}`}
                 className="mt-2 w-full rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[rgba(182,133,58,0.18)]"
               />
             </label>
@@ -249,7 +247,8 @@ export function InlinePaymentFields({
                 name="payment_total_amount"
                 value={totalAmount}
                 onChange={(event) => handleTotalAmountChange(event.target.value)}
-                placeholder="0,00"
+                inputMode="numeric"
+                placeholder="R$ 0,00"
                 className="mt-2 w-full rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[rgba(182,133,58,0.18)]"
               />
             </label>
@@ -288,7 +287,7 @@ export function InlinePaymentFields({
                 name="payment_is_installment"
                 checked={isInstallment}
                 onChange={(event) => handleInstallmentToggle(event.target.checked)}
-                disabled={paymentType !== "monthly_payment"}
+                disabled={!canBeInstallmentPayment(paymentType)}
               />
               Parcelado
             </label>
@@ -325,7 +324,7 @@ export function InlinePaymentFields({
 
           {baseDate ? (
             <div className="rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm leading-6 text-[var(--muted-foreground)]">
-              A primeira parcela ficará em <strong>{new Date(`${baseDate}T12:00:00`).toLocaleDateString("pt-BR")}</strong>{" "}
+              Em caso de parcelamento, primeira parcela ficará em <strong>{new Date(`${baseDate}T12:00:00`).toLocaleDateString("pt-BR")}</strong>{" "}
               e as próximas seguirão no mesmo dia dos meses subsequentes.
             </div>
           ) : null}
@@ -352,7 +351,8 @@ export function InlinePaymentFields({
                     <input
                       name={`payment_installment_amount_${index + 1}`}
                       value={installment.amount}
-                      onChange={(event) => updateInstallment(index, "amount", event.target.value)}
+                      onChange={(event) => updateInstallment(index, "amount", formatCurrencyInput(event.target.value))}
+                      inputMode="numeric"
                       className="mt-2 w-full rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[rgba(182,133,58,0.18)]"
                     />
                   </label>
@@ -362,8 +362,8 @@ export function InlinePaymentFields({
                     <select
                       name={`payment_installment_method_${index + 1}`}
                       value={installment.paymentMethod}
-                      onChange={(event) => updateInstallment(index, "paymentMethod", event.target.value)}
-                      className="mt-2 w-full rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[rgba(182,133,58,0.18)]"
+                      disabled
+                      className="mt-2 w-full rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-sm text-[var(--foreground)] outline-none transition disabled:opacity-90"
                     >
                       <option value="">Selecione</option>
                       {PAYMENT_METHOD_OPTIONS.map((option) => (
@@ -372,6 +372,11 @@ export function InlinePaymentFields({
                         </option>
                       ))}
                     </select>
+                    <input
+                      type="hidden"
+                      name={`payment_installment_method_${index + 1}`}
+                      value={installment.paymentMethod}
+                    />
                   </label>
 
                   <label className="block text-sm font-medium text-[var(--foreground)]">

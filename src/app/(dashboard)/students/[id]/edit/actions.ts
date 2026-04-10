@@ -8,18 +8,22 @@ import {
   buildGuardianPayload,
   buildStudentPayload,
   getRequiredTextValue,
-  getTextValue,
+  validateStudentForm,
 } from "@/lib/students/form-helpers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/types/supabase";
 
 type GuardianInsert = Database["public"]["Tables"]["student_guardians"]["Insert"];
 
-export async function updateStudentAction(studentId: string, formData: FormData) {
-  const fullName = getTextValue(formData, "full_name");
+function isMissingStudentColumn(error: { message?: string } | null) {
+  return error?.message?.includes("is_active") || error?.message?.includes("language") || false;
+}
 
-  if (!fullName) {
-    redirect(`/students/${studentId}/edit?error=Preencha+o+nome+do+aluno`);
+export async function updateStudentAction(studentId: string, formData: FormData) {
+  const validationError = validateStudentForm(formData);
+
+  if (validationError) {
+    redirect(`/students/${studentId}/edit?error=${encodeURIComponent(validationError)}`);
   }
 
   const supabase = await createSupabaseServerClient();
@@ -28,10 +32,23 @@ export async function updateStudentAction(studentId: string, formData: FormData)
     formData,
   ) as Database["public"]["Tables"]["students"]["Update"];
 
-  const { error: studentError } = await supabase
+  let updateResult = await supabase
     .from("students")
     .update(studentPayload)
     .eq("id", studentId);
+
+  if (isMissingStudentColumn(updateResult.error)) {
+    const compatibleStudentPayload = { ...studentPayload };
+    delete compatibleStudentPayload.is_active;
+    delete compatibleStudentPayload.language;
+
+    updateResult = await supabase
+      .from("students")
+      .update(compatibleStudentPayload)
+      .eq("id", studentId);
+  }
+
+  const { error: studentError } = updateResult;
 
   if (studentError) {
     redirect(`/students/${studentId}/edit?error=Não+foi+possível+atualizar+o+aluno`);

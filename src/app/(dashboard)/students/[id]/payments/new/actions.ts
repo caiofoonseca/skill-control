@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { isCreditCardMethod } from "@/lib/payments/constants";
+import { getDefaultPaymentTitle, isCreditCardMethod, PAYMENT_TYPE_OPTIONS } from "@/lib/payments/constants";
 import { normalizeMoney } from "@/lib/payments/money";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Database } from "@/types/supabase";
@@ -11,6 +11,10 @@ import type { Database } from "@/types/supabase";
 function getTextValue(formData: FormData, key: string) {
   const value = String(formData.get(key) ?? "").trim();
   return value.length > 0 ? value : null;
+}
+
+function isValidPaymentType(value: string | null) {
+  return Boolean(value && PAYMENT_TYPE_OPTIONS.some((option) => option.value === value));
 }
 
 export async function createPaymentPlanAction(studentId: string, formData: FormData) {
@@ -21,24 +25,19 @@ export async function createPaymentPlanAction(studentId: string, formData: FormD
   const defaultPaymentMethod = getTextValue(formData, "default_payment_method");
   const paymentBaseDate = getTextValue(formData, "payment_base_date");
 
-  if (!paymentType || !totalAmount) {
+  if (!isValidPaymentType(paymentType) || !totalAmount) {
     redirect(`/students/${studentId}/payments/new?error=Preencha+os+dados+do+pagamento`);
   }
 
   const effectiveCount = isInstallment ? Math.max(installmentCount, 1) : 1;
-  const title =
-    getTextValue(formData, "title") ??
-    (paymentType === "enrollment_fee"
-      ? "Taxa de matrícula"
-      : paymentType === "re_enrollment_fee"
-        ? "Taxa de rematrícula"
-        : "Mensalidade");
+  const effectivePaymentType = paymentType ?? "installments";
+  const title = getTextValue(formData, "title") ?? getDefaultPaymentTitle(effectivePaymentType);
 
   const supabase = await createSupabaseServerClient();
 
   const planPayload: Database["public"]["Tables"]["student_payment_plans"]["Insert"] = {
     student_id: studentId,
-    payment_type: paymentType as Database["public"]["Tables"]["student_payment_plans"]["Row"]["payment_type"],
+    payment_type: effectivePaymentType as Database["public"]["Tables"]["student_payment_plans"]["Row"]["payment_type"],
     title,
     total_amount: totalAmount,
     is_installment: isInstallment,

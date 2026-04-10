@@ -15,7 +15,12 @@ export async function createSupabaseServerClient() {
       setAll(cookiesToSet) {
         cookiesToSet.forEach(({ name, value, options }) => {
           try {
-            cookieStore.set(name, value, options);
+            const sessionOptions = { ...options };
+            if (value) {
+              delete sessionOptions.expires;
+              delete sessionOptions.maxAge;
+            }
+            cookieStore.set(name, value, sessionOptions);
           } catch {
             // In Server Components we may only read cookies.
             // Auth writes are handled in middleware and Server Actions.

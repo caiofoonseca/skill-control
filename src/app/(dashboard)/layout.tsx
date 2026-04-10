@@ -36,7 +36,7 @@ export default async function DashboardLayout({
               />
             </div>
             <p className="mt-4 text-sm font-medium text-white/80">SkillEd Idiomas</p>
-            <h1 className="mt-1 text-2xl font-semibold">Skill Control</h1>
+            <h1 className="mt-1 text-2xl font-semibold">Gestão Escolar</h1>
             <p className="mt-3 text-sm leading-6 text-white/85">
               Painel administrativo da unidade de Graças, Recife.
             </p>
@@ -64,11 +64,11 @@ export default async function DashboardLayout({
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm font-medium text-[var(--accent)]">
-                  Painel administrativo
+                  Gestão Escolar - Skill Idiomas
                 </p>
                 <div className="mt-1 flex items-center gap-3">
                   <h2 className="text-2xl font-semibold text-[var(--foreground)]">
-                    Skill Control
+                    Painel administrativo
                   </h2>
                   <span className="rounded-full bg-[var(--accent-soft)] px-3 py-1 text-xs font-semibold text-[var(--accent)]">
                     Privado

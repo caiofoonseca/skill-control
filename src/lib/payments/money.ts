@@ -1,5 +1,7 @@
 export function parseMoneyInput(value: string | null | undefined) {
-  const normalized = String(value ?? "").trim();
+  const normalized = String(value ?? "")
+    .trim()
+    .replace(/[^\d,.-]/g, "");
 
   if (!normalized) {
     return null;
@@ -43,4 +45,21 @@ export function formatMoneyInput(value: string | number) {
   }
 
   return parsed.toFixed(2).replace(".", ",");
+}
+
+export function formatCurrencyInput(value: string | null | undefined) {
+  const digits = String(value ?? "").replace(/\D/g, "");
+  const cents = Number(digits || "0");
+
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(cents / 100);
+}
+
+export function formatCurrencyFromNumber(value: number) {
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(value);
 }

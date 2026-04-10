@@ -2,8 +2,8 @@
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Skill Control",
-  description: "Painel administrativo do SkillEd Idiomas - Graças, Recife.",
+  title: "Gestão Escolar - Skill Idiomas",
+  description: "Gestão escolar da Skill Idiomas - Graças, Recife.",
   icons: {
     icon: "/brand/skill-favicon.svg",
     shortcut: "/brand/skill-favicon.svg",

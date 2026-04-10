@@ -13,6 +13,10 @@ type PageProps = {
   }>;
 };
 
+function isMissingNewStudentColumn(error: { message?: string } | null) {
+  return error?.message?.includes("is_active") || error?.message?.includes("language") || false;
+}
+
 export default async function StudentsPage({ searchParams }: PageProps) {
   const supabase = await createSupabaseServerClient();
   const params = await searchParams;
@@ -22,7 +26,7 @@ export default async function StudentsPage({ searchParams }: PageProps) {
 
   let studentsQuery = supabase
     .from("students")
-    .select("id, full_name, class_name, teacher_name, phone, email, created_at")
+    .select("id, full_name, class_name, teacher_name, phone, email, created_at, is_active, language")
     .order("created_at", { ascending: false });
 
   if (searchQuery) {
@@ -39,10 +43,41 @@ export default async function StudentsPage({ searchParams }: PageProps) {
     studentsQuery = studentsQuery.eq("teacher_name", teacherFilter);
   }
 
-  const [{ data: students, error }, { classOptions, teacherOptions }] = await Promise.all([
-    studentsQuery,
-    getStudentOptions(),
-  ]);
+  const studentsResult = await studentsQuery;
+  let students = studentsResult.data;
+  let error = studentsResult.error;
+
+  if (isMissingNewStudentColumn(error)) {
+    let fallbackQuery = supabase
+      .from("students")
+      .select("id, full_name, class_name, teacher_name, phone, email, created_at")
+      .order("created_at", { ascending: false });
+
+    if (searchQuery) {
+      fallbackQuery = fallbackQuery.or(
+        `full_name.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%,phone.ilike.%${searchQuery}%`,
+      );
+    }
+
+    if (classFilter) {
+      fallbackQuery = fallbackQuery.eq("class_name", classFilter);
+    }
+
+    if (teacherFilter) {
+      fallbackQuery = fallbackQuery.eq("teacher_name", teacherFilter);
+    }
+
+    const fallbackResult = await fallbackQuery;
+    students =
+      fallbackResult.data?.map((student) => ({
+        ...student,
+        is_active: true,
+        language: "Ingles",
+      })) ?? null;
+    error = fallbackResult.error;
+  }
+
+  const { classOptions, teacherOptions } = await getStudentOptions();
 
   const exportParams = new URLSearchParams();
   if (searchQuery) exportParams.set("q", searchQuery);
@@ -89,7 +124,7 @@ export default async function StudentsPage({ searchParams }: PageProps) {
           </label>
 
           <label className="block text-sm font-medium text-[var(--foreground)]">
-            Turma
+            Turma/Horário
             <select
               name="class"
               defaultValue={classFilter}
@@ -147,7 +182,7 @@ export default async function StudentsPage({ searchParams }: PageProps) {
             ) : null}
             {classFilter ? (
               <span className="rounded-full bg-[var(--accent-soft)] px-3 py-1 text-xs font-semibold text-[var(--accent)]">
-                Turma: {classFilter}
+                Turma/Horário: {classFilter}
               </span>
             ) : null}
             {teacherFilter ? (
@@ -220,7 +255,7 @@ export default async function StudentsPage({ searchParams }: PageProps) {
               <thead>
                 <tr className="text-left text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted-foreground)]">
                   <th className="px-4 py-2">Aluno</th>
-                  <th className="px-4 py-2">Turma</th>
+                  <th className="px-4 py-2">Turma/Horário</th>
                   <th className="px-4 py-2">Professor</th>
                   <th className="px-4 py-2">Contato</th>
                 </tr>
@@ -232,9 +267,20 @@ export default async function StudentsPage({ searchParams }: PageProps) {
                       <div className="font-semibold text-[var(--foreground)]">
                         {student.full_name}
                       </div>
-                      <div className="mt-1 text-sm text-[var(--muted-foreground)]">
-                        Cadastrado em{" "}
-                        {new Date(student.created_at).toLocaleDateString("pt-BR")}
+                      <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-[var(--muted-foreground)]">
+                        <span>
+                          Cadastrado em{" "}
+                          {new Date(student.created_at).toLocaleDateString("pt-BR")}
+                        </span>
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                            student.is_active
+                              ? "bg-[rgba(240,253,244,0.92)] text-[rgb(21,128,61)]"
+                              : "bg-[rgba(241,245,249,0.96)] text-[var(--muted-foreground)]"
+                          }`}
+                        >
+                          {student.is_active ? "Ativo" : "Inativo"}
+                        </span>
                       </div>
                     </td>
                     <td className="px-4 py-4 text-sm text-[var(--foreground)]">

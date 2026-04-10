@@ -18,8 +18,13 @@ export async function updateSession(request: NextRequest) {
       },
       setAll(cookiesToSet) {
         cookiesToSet.forEach(({ name, value, options }) => {
+          const sessionOptions = { ...options };
+          if (value) {
+            delete sessionOptions.expires;
+            delete sessionOptions.maxAge;
+          }
           request.cookies.set(name, value);
-          response.cookies.set(name, value, options);
+          response.cookies.set(name, value, sessionOptions);
         });
       },
     },
