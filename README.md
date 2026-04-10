@@ -1,106 +1,123 @@
-# Skill Control
+# Gestão Escolar - Skill Idiomas
 
-Painel administrativo privado do **SkillEd Idiomas - Graças, Recife** para uso interno da equipe gestora.
+Aplicação web administrativa da **Skill Idiomas - Graças, Recife**, criada para uso interno da equipe da escola.
+
+O sistema reúne em um único painel o cadastro de alunos, turmas, professores, responsáveis, pagamentos e exportações, com acesso restrito por login.
 
 ## Objetivo
 
-Construir uma aplicação web simples, bonita, segura e fácil de manter para:
+O projeto foi pensado para facilitar a rotina administrativa da unidade, reduzindo controles espalhados e centralizando as informações mais importantes do dia a dia escolar.
 
-- fazer login com acesso restrito
-- visualizar um dashboard interno
-- cadastrar, editar, consultar e excluir alunos
-- buscar e filtrar registros
-- visualizar detalhes completos de cada aluno
-- exportar dados para CSV/planilha
+Na prática, ele ajuda a equipe a:
 
-## Stack escolhida
+- organizar o cadastro dos alunos
+- acompanhar turmas e professores
+- registrar responsáveis e contato financeiro
+- controlar pagamentos e parcelas
+- exportar dados para acompanhamento externo
 
-- Next.js
-- TypeScript
-- Tailwind CSS
-- shadcn/ui
-- Supabase
-- Vercel
+## Como a aplicação funciona
 
-## Princípios do projeto
+Depois do login, o usuário entra em um painel privado com os principais módulos de gestão da escola.
 
-- interface profissional, acolhedora e limpa
-- fluxo simples para dois usuários internos
-- autenticação segura sem cadastro público
-- estrutura fácil de evoluir
-- deploy simples
+### Dashboard
 
-## Estratégia de construção
+Apresenta uma visão geral do sistema, com indicadores como:
 
-Vamos construir em etapas pequenas e validadas:
+- total de alunos cadastrados
+- quantidade de turmas
+- quantidade de professores
+- aniversariantes do mês
 
-1. Visão geral do projeto
-2. Estrutura de pastas
-3. Modelagem inicial do banco
-4. Criação do projeto Next.js
-5. Configuração do Supabase
-6. Autenticação e controle de acesso
-7. Layout base
-8. Telas principais
-9. CRUD de alunos
-10. Exportação de dados
-11. Revisão final
-12. Deploy na Vercel
+### Gerenciamento de alunos
 
-## Decisões iniciais
+É o módulo principal da aplicação.
 
-### Acesso
+Nele é possível:
 
-O sistema terá autenticação privada via Supabase Auth.
-Não haverá cadastro público aberto.
-Somente contas criadas manualmente por você no Supabase poderão entrar.
+- cadastrar alunos
+- editar cadastros existentes
+- visualizar detalhes completos
+- excluir com confirmação
+- marcar aluno como ativo ou inativo
+- informar idioma e origem do aluno
+- vincular turma e professor
+- registrar responsáveis
+- registrar responsável financeiro
 
-### Modelagem inicial
+O formulário também possui validações para evitar erros de preenchimento, incluindo CPF, e-mail, CEP, telefone e outros campos importantes.
 
-Para começar com simplicidade e boa manutenção, a base será organizada em:
+### Gerenciamento de turmas
 
-- `students`
-- `student_guardians`
-- `student_financial_contacts`
+Permite cadastrar, editar e excluir turmas, associando cada uma ao professor responsável.
 
-Assim conseguimos manter os dados bem estruturados sem complicar cedo demais.
+No sistema, o nome da turma já pode incluir o horário, no formato usado pela operação da escola, como por exemplo:
 
-### Exportação
+`KIDS CLASS - 15H30 - 17H30`
 
-A exportação inicial será em CSV, por ser simples, estável e fácil de abrir no Excel.
-Se depois vocês quiserem, podemos evoluir para `.xlsx`.
+### Gerenciamento de professores
 
-### Direção visual
+Permite cadastrar os professores da unidade e acompanhar:
 
-Se houver referência visual pública da marca, ela será usada como base.
-Se não houver material suficiente, a interface seguirá uma identidade:
+- quantos alunos estão vinculados a cada professor
+- quais turmas estão associadas a ele
 
-- profissional
-- educacional
-- acolhedora
-- elegante
-- clara e moderna
+### Pagamentos
 
-## Resultado esperado da primeira versão
+A aplicação permite registrar pagamentos no cadastro inicial do aluno ou depois, de forma separada.
 
-Ao final da primeira entrega, o sistema deverá permitir:
+Os tipos atualmente trabalhados no sistema são:
 
-- login seguro
-- acesso apenas à área interna
-- dashboard com visão geral
-- CRUD completo de alunos
-- confirmação antes de excluir
-- busca e filtros
-- exportação dos dados cadastrados
+- Matrícula
+- Matrícula + 1ª Parcela
+- Parcelas
+- Curso à vista
+- Material Didático
+- Entrada
 
-## Como vamos trabalhar
+Também há suporte a:
 
-Em cada etapa vamos definir:
+- valores formatados em moeda
+- geração de parcelas
+- preenchimento automático da forma de pagamento
+- ajuste individual de parcelas quando necessário
 
-- o objetivo da etapa
-- o que será feito agora
-- os arquivos criados ou editados
-- o código necessário naquele momento
-- como validar rapidamente
+### Relatórios e exportação
 
-Sem pular etapas.
+O sistema permite exportar dados em CSV para facilitar consultas e controles fora da plataforma.
+
+As exportações podem ser feitas:
+
+- com a base geral de alunos
+- por turma
+- por professor
+
+## Principais funcionalidades
+
+- autenticação com acesso restrito
+- dashboard administrativo
+- CRUD de alunos
+- CRUD de turmas
+- CRUD de professores
+- controle de pagamentos e parcelas
+- validação de campos sensíveis
+- confirmação visual antes de excluir
+- exportação de dados em CSV
+- listagem de aniversariantes do mês
+
+## Tecnologias utilizadas
+
+- **Next.js 16**
+- **React 19**
+- **TypeScript**
+- **Tailwind CSS 4**
+- **Supabase**
+- **Vercel**
+
+## Deploy
+
+O projeto está preparado para deploy na **Vercel**, usando o **Supabase** como backend e autenticação.
+
+---
+
+Sistema desenvolvido para apoiar a operação administrativa da **Skill Idiomas**.
