@@ -7,6 +7,7 @@ type PageProps = {
   searchParams: Promise<{
     created?: string;
     deleted?: string;
+    updated?: string;
     q?: string;
     class?: string;
     teacher?: string;
@@ -209,6 +210,27 @@ export default async function StudentsPage({ searchParams }: PageProps) {
       {params.deleted ? (
         <div className="rounded-[24px] border border-[rgba(22,101,52,0.16)] bg-[rgba(240,253,244,0.92)] px-5 py-4 text-sm font-medium text-[rgb(21,128,61)] shadow-sm">
           {params.deleted}
+        </div>
+      ) : null}
+
+      {params.updated ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(15,23,42,0.44)] px-4 py-6">
+          <div className="w-full max-w-md rounded-lg border border-[rgba(22,101,52,0.16)] bg-white p-6 shadow-2xl shadow-[rgba(15,23,42,0.22)]">
+            <h2 className="text-xl font-semibold text-[var(--foreground)]">
+              Cadastro atualizado com sucesso
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-[var(--muted-foreground)]">
+              Aluno: {params.updated}
+            </p>
+            <div className="mt-6 flex justify-end">
+              <Link
+                href="/students"
+                className="rounded-lg bg-[var(--primary)] px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-95"
+              >
+                OK
+              </Link>
+            </div>
+          </div>
         </div>
       ) : null}
 

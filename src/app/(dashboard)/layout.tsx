@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { redirect } from "next/navigation";
 
+import { TabSessionGuard } from "@/components/auth/tab-session-guard";
 import { SidebarNavV2 } from "@/components/layout/sidebar-nav-v2";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -22,6 +23,7 @@ export default async function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-[var(--background)]">
+      <TabSessionGuard />
       <div className="mx-auto grid min-h-screen w-full max-w-7xl gap-6 px-4 py-4 lg:grid-cols-[280px_minmax(0,1fr)] lg:px-6">
         <aside className="rounded-[32px] border border-[var(--border)] bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(231,240,252,0.55))] p-5 shadow-sm">
           <div className="rounded-[24px] bg-[linear-gradient(180deg,rgba(236,28,36,1),rgba(200,22,29,1))] px-5 py-5 text-white shadow-lg shadow-[rgba(236,28,36,0.24)]">

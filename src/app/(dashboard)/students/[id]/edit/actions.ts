@@ -99,11 +99,7 @@ export async function updateStudentAction(studentId: string, formData: FormData)
 
   revalidatePath("/students");
   revalidatePath(`/students/${studentId}`);
-  redirect(
-    `/students/${studentId}?updated=${encodeURIComponent(
-      getRequiredTextValue(formData, "full_name", "Aluno"),
-    )}`,
-  );
+  redirect(`/students?updated=${encodeURIComponent(getRequiredTextValue(formData, "full_name", "Aluno"))}`);
 }
 
 export async function deleteStudentAction(studentId: string) {
