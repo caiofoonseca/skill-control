@@ -59,6 +59,7 @@ export type Database = {
           current_book: string | null;
           source: string | null;
           is_active: boolean;
+          is_scholarship: boolean;
           language: string;
         };
         Insert: {
@@ -87,6 +88,7 @@ export type Database = {
           current_book?: string | null;
           source?: string | null;
           is_active?: boolean;
+          is_scholarship?: boolean;
           language?: string;
         };
         Update: {
@@ -112,6 +114,7 @@ export type Database = {
           current_book?: string | null;
           source?: string | null;
           is_active?: boolean;
+          is_scholarship?: boolean;
           language?: string;
         };
       };
@@ -172,6 +175,7 @@ export type Database = {
           phone: string | null;
           work_phone: string | null;
           email: string | null;
+          source_guardian_type: "primary" | "secondary" | null;
         };
         Insert: {
           id?: string;
@@ -186,6 +190,7 @@ export type Database = {
           phone?: string | null;
           work_phone?: string | null;
           email?: string | null;
+          source_guardian_type?: "primary" | "secondary" | null;
         };
         Update: {
           full_name?: string;
@@ -196,6 +201,7 @@ export type Database = {
           phone?: string | null;
           work_phone?: string | null;
           email?: string | null;
+          source_guardian_type?: "primary" | "secondary" | null;
         };
       };
       student_payment_plans: {
@@ -307,6 +313,12 @@ export type Database = {
           created_at: string;
           updated_at: string;
           name: string;
+          address: string | null;
+          cpf: string | null;
+          rg: string | null;
+          email: string | null;
+          phone: string | null;
+          family_phone: string | null;
           active: boolean;
         };
         Insert: {
@@ -314,10 +326,22 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
           name: string;
+          address?: string | null;
+          cpf?: string | null;
+          rg?: string | null;
+          email?: string | null;
+          phone?: string | null;
+          family_phone?: string | null;
           active?: boolean;
         };
         Update: {
           name?: string;
+          address?: string | null;
+          cpf?: string | null;
+          rg?: string | null;
+          email?: string | null;
+          phone?: string | null;
+          family_phone?: string | null;
           active?: boolean;
         };
       };

@@ -1,4 +1,5 @@
-﻿import type { Database } from "@/types/supabase";
+﻿import { BRAZIL_STATE_VALUES } from "@/lib/brazil/states";
+import type { Database } from "@/types/supabase";
 
 export type GuardianInsert = Database["public"]["Tables"]["student_guardians"]["Insert"];
 export type FinancialInsert =
@@ -16,12 +17,14 @@ const studentSourceOptions = [
 ];
 
 const studentLanguageOptions = [
-  "Ingles",
-  "Alemao",
-  "Frances",
+  "Inglês",
+  "Alemão",
+  "Francês",
   "Espanhol",
-  "Portugues para estrangeiros",
+  "Português para estrangeiros",
 ];
+
+type GuardianRole = "primary" | "secondary";
 
 export function getTextValue(formData: FormData, key: string) {
   const value = String(formData.get(key) ?? "").trim();
@@ -183,8 +186,17 @@ function validateOptionalSource(formData: FormData, key: string) {
   return null;
 }
 
+function getFinancialContactSource(formData: FormData): "manual" | GuardianRole {
+  const value = getTextValue(formData, "financial_contact_source");
+  if (value === "primary" || value === "secondary") {
+    return value;
+  }
+
+  return "manual";
+}
+
 function validateStudentLanguage(formData: FormData, key: string) {
-  const value = getTextValue(formData, key) ?? "Ingles";
+  const value = getTextValue(formData, key) ?? "Inglês";
   if (!studentLanguageOptions.includes(value)) {
     return { key, message: "Selecione um idioma válido." };
   }
@@ -207,8 +219,8 @@ export function validateStudentFormFields(formData: FormData) {
   }
 
   const state = getTextValue(formData, "state");
-  if (state && !/^[A-Za-z]{2}$/.test(state)) {
-    errors.state = "Campo inválido. Informe a UF com duas letras.";
+  if (state && !BRAZIL_STATE_VALUES.includes(state as (typeof BRAZIL_STATE_VALUES)[number])) {
+    errors.state = "Campo inválido. Selecione uma UF válida.";
   }
 
   const validations = [
@@ -268,10 +280,19 @@ export function validateStudentFormFields(formData: FormData) {
     errors.guardian2_full_name = "Informe o nome ou limpe os dados deste responsável.";
   }
 
-  if (!getTextValue(formData, "financial_full_name") && (
-    getTextValue(formData, "financial_cpf") || getTextValue(formData, "financial_email")
-  )) {
-    errors.financial_full_name = "Informe o nome ou limpe os dados do responsável financeiro.";
+  const financialContactSource = getFinancialContactSource(formData);
+
+  if (financialContactSource === "manual") {
+    if (!getTextValue(formData, "financial_full_name") && (
+      getTextValue(formData, "financial_cpf") || getTextValue(formData, "financial_email")
+    )) {
+      errors.financial_full_name = "Informe o nome ou limpe os dados do responsável financeiro.";
+    }
+  } else {
+    const sourcePrefix = financialContactSource === "primary" ? "guardian1" : "guardian2";
+    if (!getTextValue(formData, `${sourcePrefix}_full_name`)) {
+      errors.financial_contact_source = "Informe o nome do responsável selecionado antes de usá-lo como financeiro.";
+    }
   }
 
   return errors;
@@ -318,7 +339,8 @@ export function buildStudentPayload(
     source: getTextValue(formData, "source"),
     payment_notes: getTextValue(formData, "payment_notes"),
     is_active: formData.get("is_active") === "on",
-    language: getTextValue(formData, "language") ?? "Ingles",
+    is_scholarship: formData.get("is_scholarship") === "on",
+    language: getTextValue(formData, "language") ?? "Inglês",
   };
 }
 
@@ -352,10 +374,34 @@ export function buildFinancialContactPayload(
   formData: FormData,
   studentId: string,
 ): FinancialInsert | null {
-  const fullName = getTextValue(formData, "financial_full_name");
+  const source = getFinancialContactSource(formData);
+  const fullName =
+    source === "manual"
+      ? getTextValue(formData, "financial_full_name")
+      : getTextValue(
+          formData,
+          source === "primary" ? "guardian1_full_name" : "guardian2_full_name",
+        );
 
   if (!fullName) {
     return null;
+  }
+
+  if (source === "primary" || source === "secondary") {
+    const prefix = source === "primary" ? "guardian1" : "guardian2";
+
+    return {
+      student_id: studentId,
+      full_name: fullName,
+      cpf: getTextValue(formData, `${prefix}_cpf`),
+      address: null,
+      profession: getTextValue(formData, `${prefix}_profession`),
+      company: getTextValue(formData, `${prefix}_company`),
+      phone: getTextValue(formData, `${prefix}_phone`),
+      work_phone: getTextValue(formData, `${prefix}_work_phone`),
+      email: getTextValue(formData, `${prefix}_email`),
+      source_guardian_type: source,
+    };
   }
 
   return {
@@ -368,5 +414,6 @@ export function buildFinancialContactPayload(
     phone: getTextValue(formData, "financial_phone"),
     work_phone: getTextValue(formData, "financial_work_phone"),
     email: getTextValue(formData, "financial_email"),
+    source_guardian_type: null,
   };
 }

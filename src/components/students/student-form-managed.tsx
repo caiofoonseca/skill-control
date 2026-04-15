@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { InlinePaymentFields } from "@/components/students/inline-payment-fields";
+import { BRAZIL_STATE_OPTIONS } from "@/lib/brazil/states";
 import { validateStudentFormFields } from "@/lib/students/form-helpers";
 
 const studentFields = [
@@ -13,7 +14,6 @@ const studentFields = [
   { name: "apartment", label: "Apto" },
   { name: "neighborhood", label: "Bairro" },
   { name: "city", label: "Cidade" },
-  { name: "state", label: "UF", maxLength: 2, pattern: "[A-Za-z]{2}" },
   { name: "zip_code", label: "CEP", inputMode: "numeric", pattern: "[0-9.\\- ]{8,10}" },
   { name: "instagram", label: "Instagram" },
   { name: "email", label: "E-mail", type: "email" },
@@ -67,11 +67,11 @@ const sourceOptions = [
 ] as const;
 
 const languageOptions = [
-  "Ingles",
-  "Alemao",
-  "Frances",
+  "Inglês",
+  "Alemão",
+  "Francês",
   "Espanhol",
-  "Portugues para estrangeiros",
+  "Português para estrangeiros",
 ] as const;
 
 type FormValues = Record<string, string | null | undefined>;
@@ -89,6 +89,8 @@ type ExistingPaymentPlan = {
   installmentCount: number;
   paymentType: string;
 };
+
+type FinancialContactSource = "manual" | "primary" | "secondary";
 
 function inputClassName() {
   return "mt-1.5 w-full rounded-lg border border-[var(--border)] bg-white px-3 py-2 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[rgba(182,133,58,0.18)]";
@@ -180,7 +182,11 @@ export function StudentFormManaged({
 }: StudentFormProps) {
   const [selectedClassName, setSelectedClassName] = useState(values?.class_name ?? "");
   const [teacherName, setTeacherName] = useState(values?.teacher_name ?? "");
+  const [financialContactSource, setFinancialContactSource] = useState<FinancialContactSource>(
+    (values?.financial_contact_source as FinancialContactSource | undefined) ?? "manual",
+  );
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const isFinancialManual = financialContactSource === "manual";
 
   function handleClassChange(nextClassName: string) {
     setSelectedClassName(nextClassName);
@@ -253,22 +259,56 @@ export function StudentFormManaged({
         <div className="rounded-lg border border-[var(--border)] bg-white p-5 shadow-sm">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--accent)]">
-            Aluno
+              Aluno
             </p>
-            <label className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--foreground)]">
-              <input
-                name="is_active"
-                type="checkbox"
-                defaultChecked={values?.is_active !== "false"}
-                className="h-4 w-4 rounded border-[var(--border)] accent-[var(--primary)]"
-              />
-              Aluno ativo
-            </label>
+            <div className="flex flex-wrap gap-4">
+              <label className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--foreground)]">
+                <input
+                  name="is_active"
+                  type="checkbox"
+                  defaultChecked={values?.is_active !== "false"}
+                  className="h-4 w-4 rounded border-[var(--border)] accent-[var(--primary)]"
+                />
+                Aluno ativo
+              </label>
+              <label className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--foreground)]">
+                <input
+                  name="is_scholarship"
+                  type="checkbox"
+                  defaultChecked={values?.is_scholarship === "true"}
+                  className="h-4 w-4 rounded border-[var(--border)] accent-[var(--primary)]"
+                />
+                Aluno bolsista
+              </label>
+            </div>
           </div>
           <div className="mt-4">
             <FieldGrid fields={studentFields} values={values} errors={fieldErrors} />
           </div>
           <div className="mt-3 grid gap-3 md:grid-cols-3">
+            <label className="block text-sm font-medium text-[var(--foreground)]">
+              UF
+              <select
+                name="state"
+                defaultValue={values?.state ?? ""}
+                className={fieldClassName(Boolean(fieldErrors.state))}
+                aria-invalid={Boolean(fieldErrors.state)}
+                aria-describedby={fieldErrors.state ? "state-error" : undefined}
+              >
+                <option value="">Selecione</option>
+                {BRAZIL_STATE_OPTIONS.map((state) => (
+                  <option key={state.value} value={state.value}>
+                    {state.value} - {state.label}
+                  </option>
+                ))}
+              </select>
+              {fieldErrors.state ? (
+                <span id="state-error" className="mt-1 block text-xs font-semibold text-[rgb(185,28,28)]">
+                  {fieldErrors.state}
+                </span>
+              ) : null}
+            </label>
+
             <label className="block text-sm font-medium text-[var(--foreground)]">
               Livro atual
               <input
@@ -289,7 +329,7 @@ export function StudentFormManaged({
               Idioma
               <select
                 name="language"
-                defaultValue={values?.language ?? "Ingles"}
+                defaultValue={values?.language ?? "Inglês"}
                 className={fieldClassName(Boolean(fieldErrors.language))}
                 aria-invalid={Boolean(fieldErrors.language)}
                 aria-describedby={fieldErrors.language ? "language-error" : undefined}
@@ -393,8 +433,37 @@ export function StudentFormManaged({
           <p className="mt-1 text-sm leading-6 text-[var(--muted-foreground)]">
             Preencha apenas se necessário. O bloco só será salvo se o nome for informado.
           </p>
+          <div className="mt-4 grid gap-3 md:grid-cols-3">
+            <label className="block text-sm font-medium text-[var(--foreground)]">
+              Origem do responsável financeiro
+              <select
+                name="financial_contact_source"
+                value={financialContactSource}
+                onChange={(event) => setFinancialContactSource(event.target.value as FinancialContactSource)}
+                className={fieldClassName(Boolean(fieldErrors.financial_contact_source))}
+                aria-invalid={Boolean(fieldErrors.financial_contact_source)}
+                aria-describedby={fieldErrors.financial_contact_source ? "financial-contact-source-error" : undefined}
+              >
+                <option value="manual">Cadastrar separadamente</option>
+                <option value="primary">Usar responsável 1</option>
+                <option value="secondary">Usar responsável 2</option>
+              </select>
+              {fieldErrors.financial_contact_source ? (
+                <span id="financial-contact-source-error" className="mt-1 block text-xs font-semibold text-[rgb(185,28,28)]">
+                  {fieldErrors.financial_contact_source}
+                </span>
+              ) : null}
+            </label>
+          </div>
           <div className="mt-4">
-            <FieldGrid fields={financialFields} values={values} errors={fieldErrors} />
+            <fieldset disabled={!isFinancialManual} className={!isFinancialManual ? "opacity-70" : undefined}>
+              <FieldGrid fields={financialFields} values={values} errors={fieldErrors} />
+            </fieldset>
+            {!isFinancialManual ? (
+              <p className="mt-3 text-sm leading-6 text-[var(--muted-foreground)]">
+                Os dados do responsável financeiro serão reaproveitados automaticamente do responsável selecionado.
+              </p>
+            ) : null}
           </div>
         </div>
 

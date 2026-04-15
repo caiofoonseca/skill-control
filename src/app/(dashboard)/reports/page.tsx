@@ -85,12 +85,20 @@ export default async function ReportsPage() {
             </p>
           </div>
 
-          <Link
-            href="/api/students/export"
-            className="rounded-xl bg-[var(--primary)] px-5 py-3 text-sm font-semibold text-white transition hover:opacity-95"
-          >
-            Exportar todos os alunos
-          </Link>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href="/api/students/export"
+              className="rounded-xl bg-[var(--primary)] px-5 py-3 text-sm font-semibold text-white transition hover:opacity-95"
+            >
+              Exportar para Excel
+            </Link>
+            <Link
+              href="/reports/print"
+              className="rounded-xl border border-[var(--border)] bg-[var(--panel)] px-5 py-3 text-sm font-semibold text-[var(--foreground)] transition hover:bg-white"
+            >
+              Abrir versão para impressão
+            </Link>
+          </div>
         </div>
       </div>
 

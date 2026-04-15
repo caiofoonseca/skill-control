@@ -1,4 +1,4 @@
-﻿import { createTeacherAction, deleteTeacherAction, updateTeacherAction } from "./actions";
+import { createTeacherAction, deleteTeacherAction, updateTeacherAction } from "./actions";
 import { getTeacherManagementData } from "@/lib/organization/queries";
 
 type PageProps = {
@@ -10,6 +10,24 @@ type PageProps = {
     editing?: string;
   }>;
 };
+
+type TeacherField = {
+  name: "name" | "address" | "cpf" | "rg" | "email" | "phone" | "family_phone";
+  label: string;
+  required?: boolean;
+  placeholder?: string;
+  type?: "text" | "email";
+};
+
+const teacherFields: TeacherField[] = [
+  { name: "name", label: "Nome do professor", required: true, placeholder: "Ex.: Passi", type: "text" },
+  { name: "address", label: "Endereço", type: "text" },
+  { name: "cpf", label: "CPF", type: "text" },
+  { name: "rg", label: "RG", type: "text" },
+  { name: "email", label: "E-mail", type: "email" },
+  { name: "phone", label: "Celular 01", type: "text" },
+  { name: "family_phone", label: "Celular de familiar", type: "text" },
+];
 
 export default async function TeachersPage({ searchParams }: PageProps) {
   const params = await searchParams;
@@ -54,20 +72,26 @@ export default async function TeachersPage({ searchParams }: PageProps) {
         </div>
       ) : null}
 
-      <div className="grid items-start gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+      <div className="grid items-start gap-6 xl:grid-cols-[0.95fr_1.05fr]">
         <div className="rounded-[28px] border border-[var(--border)] bg-white p-7 shadow-sm">
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--accent)]">
             Novo professor
           </p>
           <form action={createTeacherAction} className="mt-5 space-y-4">
-            <label className="block text-sm font-medium text-[var(--foreground)]">
-              Nome do professor
-              <input
-                name="name"
-                placeholder="Ex.: Passi"
-                className="mt-2 w-full rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[rgba(182,133,58,0.18)]"
-              />
-            </label>
+            <div className="grid gap-4 md:grid-cols-2">
+              {teacherFields.map((field) => (
+                <label key={field.name} className="block text-sm font-medium text-[var(--foreground)]">
+                  {field.label}
+                  <input
+                    name={field.name}
+                    type={field.type ?? "text"}
+                    required={field.required}
+                    placeholder={field.placeholder}
+                    className="mt-2 w-full rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[rgba(182,133,58,0.18)]"
+                  />
+                </label>
+              ))}
+            </div>
             <button
               type="submit"
               className="rounded-xl bg-[var(--primary)] px-5 py-3 text-sm font-semibold text-white transition hover:opacity-95"
@@ -108,11 +132,20 @@ export default async function TeachersPage({ searchParams }: PageProps) {
                           {item.name}
                         </p>
                         <p className="text-sm text-[var(--muted-foreground)]">
+                          {item.phone || item.email || "Contato não informado"}
+                        </p>
+                        <p className="text-sm text-[var(--muted-foreground)]">
                           {item.studentCount} {item.studentCount === 1 ? "aluno vinculado" : "alunos vinculados"}
                         </p>
                         <p className="text-sm text-[var(--muted-foreground)]">
                           {item.classCount} {item.classCount === 1 ? "turma associada" : "turmas associadas"}
                         </p>
+                        <div className="grid gap-1 pt-1 text-sm text-[var(--muted-foreground)]">
+                          <p>CPF: {item.cpf || "-"}</p>
+                          <p>RG: {item.rg || "-"}</p>
+                          <p>Endereço: {item.address || "-"}</p>
+                          <p>Celular de familiar: {item.family_phone || "-"}</p>
+                        </div>
                         <div className="space-y-1 pt-1">
                           {item.classNames.length > 0 ? (
                             item.classNames.map((className: string) => (
@@ -132,20 +165,27 @@ export default async function TeachersPage({ searchParams }: PageProps) {
                       </div>
 
                       {isEditing ? (
-                        <div className="flex flex-col gap-3 sm:flex-row">
+                        <div className="flex flex-col gap-3">
                           <form
                             action={updateTeacherAction.bind(null, item.id, item.name)}
-                            className="flex flex-col gap-3 sm:flex-row"
+                            className="grid gap-3 md:grid-cols-2"
                           >
-                            <input
-                              name="name"
-                              defaultValue={item.name}
-                              aria-label={`Editar professor ${item.name}`}
-                              className="min-w-[260px] rounded-xl border border-[var(--border)] bg-white px-4 py-2.5 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--accent)]"
-                            />
+                            {teacherFields.map((field) => (
+                              <label key={field.name} className="block text-sm font-medium text-[var(--foreground)]">
+                                {field.label}
+                                <input
+                                  name={field.name}
+                                  type={field.type ?? "text"}
+                                  required={field.required}
+                                  defaultValue={(item[field.name as keyof typeof item] as string | null | undefined) ?? ""}
+                                  aria-label={`${field.label} do professor ${item.name}`}
+                                  className="mt-2 min-w-[260px] rounded-xl border border-[var(--border)] bg-white px-4 py-2.5 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--accent)]"
+                                />
+                              </label>
+                            ))}
                             <button
                               type="submit"
-                              className="rounded-xl border border-[var(--border)] bg-white px-4 py-2 text-sm font-semibold text-[var(--foreground)] transition hover:bg-white"
+                              className="rounded-xl border border-[var(--border)] bg-white px-4 py-2 text-sm font-semibold text-[var(--foreground)] transition hover:bg-white md:col-span-2"
                             >
                               Salvar
                             </button>
@@ -194,4 +234,3 @@ export default async function TeachersPage({ searchParams }: PageProps) {
     </section>
   );
 }
-

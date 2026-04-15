@@ -3,6 +3,13 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 type TeacherOption = {
   id: string;
   name: string;
+  address?: string | null;
+  cpf?: string | null;
+  rg?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  family_phone?: string | null;
+  active?: boolean;
 };
 
 type ClassOptionRow = {

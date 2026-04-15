@@ -15,7 +15,10 @@ type PageProps = {
 };
 
 function isMissingNewStudentColumn(error: { message?: string } | null) {
-  return error?.message?.includes("is_active") || error?.message?.includes("language") || false;
+  return error?.message?.includes("is_active")
+    || error?.message?.includes("language")
+    || error?.message?.includes("is_scholarship")
+    || false;
 }
 
 export default async function StudentsPage({ searchParams }: PageProps) {
@@ -27,7 +30,7 @@ export default async function StudentsPage({ searchParams }: PageProps) {
 
   let studentsQuery = supabase
     .from("students")
-    .select("id, full_name, class_name, teacher_name, phone, email, created_at, is_active, language")
+    .select("id, full_name, class_name, teacher_name, phone, email, created_at, is_active, is_scholarship, language")
     .order("created_at", { ascending: false });
 
   if (searchQuery) {
@@ -73,7 +76,8 @@ export default async function StudentsPage({ searchParams }: PageProps) {
       fallbackResult.data?.map((student) => ({
         ...student,
         is_active: true,
-        language: "Ingles",
+        is_scholarship: false,
+        language: "Inglês",
       })) ?? null;
     error = fallbackResult.error;
   }
@@ -167,7 +171,7 @@ export default async function StudentsPage({ searchParams }: PageProps) {
             href={exportHref}
             className="self-end rounded-xl border border-[var(--border)] bg-[var(--panel)] px-5 py-3 text-center text-sm font-semibold text-[var(--foreground)] transition hover:bg-white"
           >
-            Exportar CSV
+            Exportar para Excel
           </Link>
         </form>
 
@@ -303,6 +307,11 @@ export default async function StudentsPage({ searchParams }: PageProps) {
                         >
                           {student.is_active ? "Ativo" : "Inativo"}
                         </span>
+                        {student.is_scholarship ? (
+                          <span className="rounded-full bg-[rgba(254,249,195,0.9)] px-2 py-0.5 text-xs font-semibold text-[rgb(133,77,14)]">
+                            Bolsista
+                          </span>
+                        ) : null}
                       </div>
                     </td>
                     <td className="px-4 py-4 text-sm text-[var(--foreground)]">

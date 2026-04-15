@@ -16,7 +16,14 @@ import type { Database } from "@/types/supabase";
 type GuardianInsert = Database["public"]["Tables"]["student_guardians"]["Insert"];
 
 function isMissingStudentColumn(error: { message?: string } | null) {
-  return error?.message?.includes("is_active") || error?.message?.includes("language") || false;
+  return error?.message?.includes("is_active")
+    || error?.message?.includes("language")
+    || error?.message?.includes("is_scholarship")
+    || false;
+}
+
+function isMissingFinancialContactColumn(error: { message?: string } | null) {
+  return error?.message?.includes("source_guardian_type") || false;
 }
 
 export async function updateStudentAction(studentId: string, formData: FormData) {
@@ -41,6 +48,7 @@ export async function updateStudentAction(studentId: string, formData: FormData)
     const compatibleStudentPayload = { ...studentPayload };
     delete compatibleStudentPayload.is_active;
     delete compatibleStudentPayload.language;
+    delete compatibleStudentPayload.is_scholarship;
 
     updateResult = await supabase
       .from("students")
@@ -51,7 +59,7 @@ export async function updateStudentAction(studentId: string, formData: FormData)
   const { error: studentError } = updateResult;
 
   if (studentError) {
-    redirect(`/students/${studentId}/edit?error=Não+foi+possível+atualizar+o+aluno`);
+    redirect(`/students/${studentId}/edit?error=Nao+foi+possivel+atualizar+o+aluno`);
   }
 
   const { error: deleteGuardiansError } = await supabase
@@ -60,7 +68,7 @@ export async function updateStudentAction(studentId: string, formData: FormData)
     .eq("student_id", studentId);
 
   if (deleteGuardiansError) {
-    redirect(`/students/${studentId}/edit?error=Erro+ao+atualizar+responsáveis`);
+    redirect(`/students/${studentId}/edit?error=Erro+ao+atualizar+responsaveis`);
   }
 
   const { error: deleteFinancialError } = await supabase
@@ -69,7 +77,7 @@ export async function updateStudentAction(studentId: string, formData: FormData)
     .eq("student_id", studentId);
 
   if (deleteFinancialError) {
-    redirect(`/students/${studentId}/edit?error=Erro+ao+atualizar+responsável+financeiro`);
+    redirect(`/students/${studentId}/edit?error=Erro+ao+atualizar+responsavel+financeiro`);
   }
 
   const guardianPayloads = [
@@ -81,19 +89,28 @@ export async function updateStudentAction(studentId: string, formData: FormData)
     const { error } = await supabase.from("student_guardians").insert(guardianPayloads);
 
     if (error) {
-      redirect(`/students/${studentId}/edit?error=Erro+ao+salvar+responsáveis`);
+      redirect(`/students/${studentId}/edit?error=Erro+ao+salvar+responsaveis`);
     }
   }
 
   const financialPayload = buildFinancialContactPayload(formData, studentId);
 
   if (financialPayload) {
-    const { error } = await supabase
+    let financialResult = await supabase
       .from("student_financial_contacts")
       .insert(financialPayload);
 
-    if (error) {
-      redirect(`/students/${studentId}/edit?error=Erro+ao+salvar+responsável+financeiro`);
+    if (isMissingFinancialContactColumn(financialResult.error)) {
+      const compatibleFinancialPayload = { ...financialPayload };
+      delete compatibleFinancialPayload.source_guardian_type;
+
+      financialResult = await supabase
+        .from("student_financial_contacts")
+        .insert(compatibleFinancialPayload);
+    }
+
+    if (financialResult.error) {
+      redirect(`/students/${studentId}/edit?error=Erro+ao+salvar+responsavel+financeiro`);
     }
   }
 
@@ -108,9 +125,9 @@ export async function deleteStudentAction(studentId: string) {
   const { error } = await supabase.from("students").delete().eq("id", studentId);
 
   if (error) {
-    redirect(`/students/${studentId}/delete?error=Não+foi+possível+excluir+o+aluno`);
+    redirect(`/students/${studentId}/delete?error=Nao+foi+possivel+excluir+o+aluno`);
   }
 
   revalidatePath("/students");
-  redirect("/students?deleted=Aluno+excluído+com+sucesso");
+  redirect("/students?deleted=Aluno+excluido+com+sucesso");
 }

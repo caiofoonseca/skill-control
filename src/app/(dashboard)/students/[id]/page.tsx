@@ -302,6 +302,11 @@ export default async function StudentDetailsPage({
           <h2 className="mt-3 text-3xl font-semibold text-[var(--foreground)]">
             {student.full_name}
           </h2>
+          {student.is_scholarship ? (
+            <p className="mt-3 inline-flex rounded-full bg-[rgba(254,249,195,0.9)] px-3 py-1 text-sm font-semibold text-[rgb(133,77,14)]">
+              Aluno bolsista
+            </p>
+          ) : null}
           <p className="mt-4 max-w-2xl text-base leading-7 text-[var(--muted-foreground)]">
             Visualização completa do cadastro do aluno, com responsáveis e dados financeiros.
           </p>
@@ -344,7 +349,8 @@ export default async function StudentDetailsPage({
             items={[
               { label: "Nome", value: student.full_name },
               { label: "Status", value: student.is_active ? "Ativo" : "Inativo" },
-              { label: "Idioma", value: student.language ?? "Ingles" },
+              { label: "Bolsista", value: student.is_scholarship ? "Sim" : "Não" },
+              { label: "Idioma", value: student.language ?? "Inglês" },
               { label: "Endereço", value: student.address },
               { label: "Número", value: student.address_number },
               { label: "Apto", value: student.apartment },
@@ -354,7 +360,7 @@ export default async function StudentDetailsPage({
               { label: "CEP", value: student.zip_code },
               { label: "Instagram", value: student.instagram },
               { label: "E-mail", value: student.email },
-              { label: "Nascimento", value: student.birth_date },
+              { label: "Nascimento", value: formatDate(student.birth_date) },
               { label: "CPF", value: student.cpf },
               { label: "RG", value: student.rg },
               { label: "Celular", value: student.phone },
@@ -433,6 +439,14 @@ export default async function StudentDetailsPage({
               { label: "Celular", value: financialContact?.phone },
               { label: "Telefone comercial", value: financialContact?.work_phone },
               { label: "E-mail", value: financialContact?.email },
+              {
+                label: "Origem",
+                value: financialContact?.source_guardian_type === "primary"
+                  ? "Mesmo que o responsável 1"
+                  : financialContact?.source_guardian_type === "secondary"
+                    ? "Mesmo que o responsável 2"
+                    : "Cadastro próprio",
+              },
             ]}
           />
         </div>

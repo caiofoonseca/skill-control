@@ -16,7 +16,7 @@ export default async function Home() {
 
       <section className="relative mx-auto flex w-full max-w-6xl flex-1 flex-col justify-center px-6 py-16 sm:px-10 lg:px-12">
         <div className="mb-8 inline-flex w-fit items-center rounded-full border border-white/60 bg-white/70 px-4 py-2 text-sm font-medium text-[var(--primary)] shadow-sm backdrop-blur">
-          SkillEd Idiomas • Graças, Recife
+          Skill Idiomas • Graças, Recife
         </div>
 
         <div className="grid gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">

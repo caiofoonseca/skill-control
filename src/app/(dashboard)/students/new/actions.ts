@@ -18,7 +18,14 @@ import {
 } from "@/lib/students/form-helpers";
 
 function isMissingNewStudentColumn(error: { message?: string } | null) {
-  return error?.message?.includes("is_active") || error?.message?.includes("language") || false;
+  return error?.message?.includes("is_active")
+    || error?.message?.includes("language")
+    || error?.message?.includes("is_scholarship")
+    || false;
+}
+
+function isMissingFinancialContactColumn(error: { message?: string } | null) {
+  return error?.message?.includes("source_guardian_type") || false;
 }
 
 function isValidPaymentType(value: string | null) {
@@ -48,6 +55,7 @@ export async function createStudentAction(formData: FormData) {
     const compatibleStudentPayload = { ...studentPayload };
     delete compatibleStudentPayload.is_active;
     delete compatibleStudentPayload.language;
+    delete compatibleStudentPayload.is_scholarship;
 
     createResult = await supabase
       .from("students")
@@ -79,9 +87,20 @@ export async function createStudentAction(formData: FormData) {
   }
 
   if (financialPayload) {
-    const { error } = await supabase
+    let financialResult = await supabase
       .from("student_financial_contacts")
       .insert(financialPayload);
+
+    if (isMissingFinancialContactColumn(financialResult.error)) {
+      const compatibleFinancialPayload = { ...financialPayload };
+      delete compatibleFinancialPayload.source_guardian_type;
+
+      financialResult = await supabase
+        .from("student_financial_contacts")
+        .insert(compatibleFinancialPayload);
+    }
+
+    const { error } = financialResult;
 
     if (error) {
       await supabase.from("students").delete().eq("id", student.id);

@@ -56,6 +56,7 @@ export default async function EditStudentPage({
     language: student.language,
     payment_notes: student.payment_notes,
     is_active: student.is_active ? "true" : "false",
+    is_scholarship: student.is_scholarship ? "true" : "false",
     guardian1_full_name: primaryGuardian?.full_name,
     guardian1_cpf: primaryGuardian?.cpf,
     guardian1_profession: primaryGuardian?.profession,
@@ -80,6 +81,7 @@ export default async function EditStudentPage({
     financial_phone: financialContact?.phone,
     financial_work_phone: financialContact?.work_phone,
     financial_email: financialContact?.email,
+    financial_contact_source: financialContact?.source_guardian_type ?? "manual",
   };
 
   const boundAction = updateStudentAction.bind(null, student.id);

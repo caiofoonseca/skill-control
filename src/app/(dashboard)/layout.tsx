@@ -37,7 +37,7 @@ export default async function DashboardLayout({
                 priority
               />
             </div>
-            <p className="mt-4 text-sm font-medium text-white/80">SkillEd Idiomas</p>
+            <p className="mt-4 text-sm font-medium text-white/80">Skill Idiomas</p>
             <h1 className="mt-1 text-2xl font-semibold">Gestão Escolar</h1>
             <p className="mt-3 text-sm leading-6 text-white/85">
               Painel administrativo da unidade de Graças, Recife.
