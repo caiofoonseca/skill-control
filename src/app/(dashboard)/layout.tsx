@@ -25,7 +25,7 @@ export default async function DashboardLayout({
     <div className="min-h-screen bg-[var(--background)]">
       <TabSessionGuard />
       <div className="mx-auto grid min-h-screen w-full max-w-7xl gap-6 px-4 py-4 lg:grid-cols-[280px_minmax(0,1fr)] lg:px-6">
-        <aside className="rounded-[32px] border border-[var(--border)] bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(231,240,252,0.55))] p-5 shadow-sm">
+        <aside className="rounded-[32px] border border-[var(--border)] bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(231,240,252,0.55))] p-5 shadow-sm lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:self-start lg:overflow-y-auto">
           <div className="rounded-[24px] bg-[linear-gradient(180deg,rgba(236,28,36,1),rgba(200,22,29,1))] px-5 py-5 text-white shadow-lg shadow-[rgba(236,28,36,0.24)]">
             <div className="rounded-[18px] bg-white/95 px-3 py-3">
               <Image

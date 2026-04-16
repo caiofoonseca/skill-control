@@ -83,22 +83,22 @@ export default async function PrintReportsPage() {
           </div>
 
           <div className="mt-6 overflow-x-auto print:mt-3 print:overflow-visible">
-            <table className="min-w-full table-fixed border-collapse text-sm print:w-full print:text-[10px]">
+            <table className="min-w-full table-fixed border-collapse text-sm print:w-full print:text-[9px]">
               <thead>
-                <tr className="border-b border-[var(--border)] text-left text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted-foreground)] print:text-[9px] print:tracking-[0.08em]">
-                  <th className="w-[18%] px-3 py-3 print:px-2 print:py-2">Aluno</th>
-                  <th className="w-[20%] px-3 py-3 print:px-2 print:py-2">Turma</th>
-                  <th className="w-[14%] px-3 py-3 print:px-2 print:py-2">Professor</th>
-                  <th className="w-[24%] px-3 py-3 print:px-2 print:py-2">Contato</th>
-                  <th className="w-[12%] px-3 py-3 print:px-2 print:py-2">Cidade/UF</th>
-                  <th className="w-[8%] px-3 py-3 print:px-2 print:py-2">Nascimento</th>
-                  <th className="w-[4%] px-3 py-3 print:px-2 print:py-2">Status</th>
+                <tr className="border-b border-[var(--border)] text-left text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted-foreground)] print:text-[8px] print:tracking-[0.04em]">
+                  <th className="w-[17%] px-3 py-3 print:px-1.5 print:py-1.5">Aluno</th>
+                  <th className="w-[19%] px-3 py-3 print:px-1.5 print:py-1.5">Turma</th>
+                  <th className="w-[13%] px-3 py-3 print:px-1.5 print:py-1.5">Professor</th>
+                  <th className="w-[22%] px-3 py-3 print:px-1.5 print:py-1.5">Contato</th>
+                  <th className="w-[11%] px-3 py-3 print:px-1.5 print:py-1.5">Cidade/UF</th>
+                  <th className="w-[10%] px-3 py-3 print:px-1.5 print:py-1.5">Nascimento</th>
+                  <th className="w-[8%] px-3 py-3 print:px-1.5 print:py-1.5">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {(students ?? []).map((student) => (
                   <tr key={student.id} className="border-b border-[rgba(148,163,184,0.22)] align-top">
-                    <td className="px-3 py-3 font-medium text-[var(--foreground)] print:px-2 print:py-2">
+                    <td className="px-3 py-3 font-medium text-[var(--foreground)] print:px-1.5 print:py-1.5">
                       <div className="break-words">{student.full_name}</div>
                       {student.is_scholarship ? (
                         <div className="mt-1 text-xs font-semibold text-[rgb(133,77,14)] print:text-[9px]">
@@ -106,27 +106,27 @@ export default async function PrintReportsPage() {
                         </div>
                       ) : null}
                     </td>
-                    <td className="px-3 py-3 text-[var(--foreground)] print:px-2 print:py-2">
+                    <td className="px-3 py-3 text-[var(--foreground)] print:px-1.5 print:py-1.5">
                       <div className="break-words">{student.class_name || "-"}</div>
                     </td>
-                    <td className="px-3 py-3 text-[var(--foreground)] print:px-2 print:py-2">
+                    <td className="px-3 py-3 text-[var(--foreground)] print:px-1.5 print:py-1.5">
                       <div className="break-words">{student.teacher_name || "-"}</div>
                     </td>
-                    <td className="px-3 py-3 text-[var(--foreground)] print:px-2 print:py-2">
+                    <td className="px-3 py-3 text-[var(--foreground)] print:px-1.5 print:py-1.5">
                       <div className="break-words">{student.phone || "-"}</div>
                       <div className="mt-1 break-all text-[var(--muted-foreground)] print:mt-0.5">
                         {student.email || "-"}
                       </div>
                     </td>
-                    <td className="px-3 py-3 text-[var(--foreground)] print:px-2 print:py-2">
+                    <td className="px-3 py-3 text-[var(--foreground)] print:px-1.5 print:py-1.5">
                       <div className="break-words">
                         {[student.city, student.state].filter(Boolean).join(" / ") || "-"}
                       </div>
                     </td>
-                    <td className="px-3 py-3 text-[var(--foreground)] print:px-2 print:py-2">
+                    <td className="px-3 py-3 text-[var(--foreground)] print:px-1.5 print:py-1.5">
                       {formatDate(student.birth_date)}
                     </td>
-                    <td className="px-3 py-3 text-[var(--foreground)] print:px-2 print:py-2">
+                    <td className="px-3 py-3 text-[var(--foreground)] print:px-1.5 print:py-1.5">
                       {student.is_active ? "Ativo" : "Inativo"}
                     </td>
                   </tr>
