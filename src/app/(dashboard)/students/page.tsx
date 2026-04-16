@@ -3,6 +3,8 @@ import Link from "next/link";
 import { getStudentOptions } from "@/lib/organization/queries";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
+const STUDENTS_PER_PAGE = 25;
+
 type PageProps = {
   searchParams: Promise<{
     created?: string;
@@ -11,6 +13,7 @@ type PageProps = {
     q?: string;
     class?: string;
     teacher?: string;
+    page?: string;
   }>;
 };
 
@@ -21,17 +24,43 @@ function isMissingNewStudentColumn(error: { message?: string } | null) {
     || false;
 }
 
+function buildStudentsPageHref(params: {
+  searchQuery: string;
+  classFilter: string;
+  teacherFilter: string;
+  page: number;
+}) {
+  const hrefParams = new URLSearchParams();
+
+  if (params.searchQuery) hrefParams.set("q", params.searchQuery);
+  if (params.classFilter) hrefParams.set("class", params.classFilter);
+  if (params.teacherFilter) hrefParams.set("teacher", params.teacherFilter);
+  if (params.page > 1) hrefParams.set("page", String(params.page));
+
+  return `/students${hrefParams.toString() ? `?${hrefParams.toString()}` : ""}`;
+}
+
 export default async function StudentsPage({ searchParams }: PageProps) {
   const supabase = await createSupabaseServerClient();
   const params = await searchParams;
   const searchQuery = params.q?.trim() ?? "";
   const classFilter = params.class?.trim() ?? "";
   const teacherFilter = params.teacher?.trim() ?? "";
+  const requestedPage = Number(params.page ?? "1");
+  const currentPage = Number.isFinite(requestedPage) && requestedPage > 0
+    ? Math.floor(requestedPage)
+    : 1;
+  const rangeFrom = (currentPage - 1) * STUDENTS_PER_PAGE;
+  const rangeTo = rangeFrom + STUDENTS_PER_PAGE - 1;
 
   let studentsQuery = supabase
     .from("students")
-    .select("id, full_name, class_name, teacher_name, phone, email, created_at, is_active, is_scholarship, language")
-    .order("created_at", { ascending: false });
+    .select(
+      "id, full_name, class_name, teacher_name, phone, email, created_at, is_active, is_scholarship, language",
+      { count: "exact" },
+    )
+    .order("created_at", { ascending: false })
+    .range(rangeFrom, rangeTo);
 
   if (searchQuery) {
     studentsQuery = studentsQuery.or(
@@ -50,12 +79,16 @@ export default async function StudentsPage({ searchParams }: PageProps) {
   const studentsResult = await studentsQuery;
   let students = studentsResult.data;
   let error = studentsResult.error;
+  let totalStudents = studentsResult.count ?? 0;
 
   if (isMissingNewStudentColumn(error)) {
     let fallbackQuery = supabase
       .from("students")
-      .select("id, full_name, class_name, teacher_name, phone, email, created_at")
-      .order("created_at", { ascending: false });
+      .select("id, full_name, class_name, teacher_name, phone, email, created_at", {
+        count: "exact",
+      })
+      .order("created_at", { ascending: false })
+      .range(rangeFrom, rangeTo);
 
     if (searchQuery) {
       fallbackQuery = fallbackQuery.or(
@@ -80,6 +113,7 @@ export default async function StudentsPage({ searchParams }: PageProps) {
         language: "Inglês",
       })) ?? null;
     error = fallbackResult.error;
+    totalStudents = fallbackResult.count ?? 0;
   }
 
   const { classOptions, teacherOptions } = await getStudentOptions();
@@ -92,6 +126,26 @@ export default async function StudentsPage({ searchParams }: PageProps) {
   const exportHref = `/api/students/export${
     exportParams.toString() ? `?${exportParams.toString()}` : ""
   }`;
+
+  const totalPages = Math.max(1, Math.ceil(totalStudents / STUDENTS_PER_PAGE));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const hasStudents = (students?.length ?? 0) > 0;
+  const visibleStart = totalStudents === 0 ? 0 : (safeCurrentPage - 1) * STUDENTS_PER_PAGE + 1;
+  const visibleEnd = totalStudents === 0
+    ? 0
+    : Math.min((safeCurrentPage - 1) * STUDENTS_PER_PAGE + (students?.length ?? 0), totalStudents);
+  const previousPageHref = buildStudentsPageHref({
+    searchQuery,
+    classFilter,
+    teacherFilter,
+    page: safeCurrentPage - 1,
+  });
+  const nextPageHref = buildStudentsPageHref({
+    searchQuery,
+    classFilter,
+    teacherFilter,
+    page: safeCurrentPage + 1,
+  });
 
   return (
     <section className="space-y-6">
@@ -244,7 +298,7 @@ export default async function StudentsPage({ searchParams }: PageProps) {
             Total de alunos
           </p>
           <p className="mt-3 text-3xl font-semibold text-[var(--foreground)]">
-            {students?.length ?? 0}
+            {totalStudents}
           </p>
           <p className="mt-2 text-sm text-[var(--muted-foreground)]">
             Considerando os filtros aplicados
@@ -253,19 +307,25 @@ export default async function StudentsPage({ searchParams }: PageProps) {
 
         <div className="rounded-[24px] border border-[var(--border)] bg-white p-6 shadow-sm">
           <p className="text-sm font-medium text-[var(--muted-foreground)]">
-            Filtros ativos
+            Página atual
           </p>
           <p className="mt-3 text-3xl font-semibold text-[var(--foreground)]">
-            {[searchQuery, classFilter, teacherFilter].filter(Boolean).length}
+            {safeCurrentPage}/{totalPages}
+          </p>
+          <p className="mt-2 text-sm text-[var(--muted-foreground)]">
+            Até {STUDENTS_PER_PAGE} alunos por página
           </p>
         </div>
 
         <div className="rounded-[24px] border border-[var(--border)] bg-white p-6 shadow-sm">
           <p className="text-sm font-medium text-[var(--muted-foreground)]">
-            Exportação
+            Exibição atual
           </p>
           <p className="mt-3 text-3xl font-semibold text-[var(--foreground)]">
-            CSV
+            {visibleStart}-{visibleEnd}
+          </p>
+          <p className="mt-2 text-sm text-[var(--muted-foreground)]">
+            Registros visíveis nesta página
           </p>
         </div>
       </div>
@@ -275,82 +335,117 @@ export default async function StudentsPage({ searchParams }: PageProps) {
           <div className="rounded-[20px] border border-[rgba(180,83,9,0.18)] bg-[rgba(255,247,237,0.92)] px-5 py-4 text-sm font-medium text-[rgb(146,64,14)]">
             Não foi possível carregar a listagem neste momento.
           </div>
-        ) : students && students.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="min-w-full border-separate border-spacing-y-3">
-              <thead>
-                <tr className="text-left text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted-foreground)]">
-                  <th className="px-4 py-2">Aluno</th>
-                  <th className="px-4 py-2">Turma/Horário</th>
-                  <th className="px-4 py-2">Professor</th>
-                  <th className="px-4 py-2">Contato</th>
-                </tr>
-              </thead>
-              <tbody>
-                {students.map((student) => (
-                  <tr key={student.id} className="rounded-2xl bg-[var(--panel)]">
-                    <td className="rounded-l-2xl px-4 py-4">
-                      <div className="font-semibold text-[var(--foreground)]">
-                        {student.full_name}
-                      </div>
-                      <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-[var(--muted-foreground)]">
-                        <span>
-                          Cadastrado em{" "}
-                          {new Date(student.created_at).toLocaleDateString("pt-BR")}
-                        </span>
-                        <span
-                          className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
-                            student.is_active
-                              ? "bg-[rgba(240,253,244,0.92)] text-[rgb(21,128,61)]"
-                              : "bg-[rgba(241,245,249,0.96)] text-[var(--muted-foreground)]"
-                          }`}
-                        >
-                          {student.is_active ? "Ativo" : "Inativo"}
-                        </span>
-                        {student.is_scholarship ? (
-                          <span className="rounded-full bg-[rgba(254,249,195,0.9)] px-2 py-0.5 text-xs font-semibold text-[rgb(133,77,14)]">
-                            Bolsista
-                          </span>
-                        ) : null}
-                      </div>
-                    </td>
-                    <td className="px-4 py-4 text-sm text-[var(--foreground)]">
-                      {student.class_name ?? "-"}
-                    </td>
-                    <td className="px-4 py-4 text-sm text-[var(--foreground)]">
-                      {student.teacher_name ?? "-"}
-                    </td>
-                    <td className="rounded-r-2xl px-4 py-4 text-sm text-[var(--foreground)]">
-                      <div>{student.phone ?? "-"}</div>
-                      <div className="mt-1 text-[var(--muted-foreground)]">
-                        {student.email ?? "-"}
-                      </div>
-                      <div className="mt-3 flex gap-3">
-                        <Link
-                          href={`/students/${student.id}`}
-                          className="text-sm font-semibold text-[var(--accent)]"
-                        >
-                          Ver detalhes
-                        </Link>
-                        <Link
-                          href={`/students/${student.id}#pagamentos-do-aluno`}
-                          className="text-sm font-semibold text-[var(--foreground)]"
-                        >
-                          Visualizar pagamentos
-                        </Link>
-                        <Link
-                          href={`/students/${student.id}/edit`}
-                          className="text-sm font-semibold text-[var(--foreground)]"
-                        >
-                          Editar
-                        </Link>
-                      </div>
-                    </td>
+        ) : hasStudents ? (
+          <>
+            <div className="mb-4 flex flex-col gap-3 rounded-[20px] border border-[var(--border)] bg-[var(--panel)] px-4 py-3 text-sm text-[var(--muted-foreground)] sm:flex-row sm:items-center sm:justify-between">
+              <p>
+                Mostrando {visibleStart} a {visibleEnd} de {totalStudents} alunos.
+              </p>
+              <div className="flex items-center gap-2">
+                <Link
+                  href={previousPageHref}
+                  aria-disabled={safeCurrentPage <= 1}
+                  className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
+                    safeCurrentPage <= 1
+                      ? "pointer-events-none border border-[var(--border)] text-[var(--muted-foreground)] opacity-50"
+                      : "border border-[var(--border)] bg-white text-[var(--foreground)] hover:bg-[var(--background)]"
+                  }`}
+                >
+                  Anterior
+                </Link>
+                <span className="rounded-lg bg-white px-3 py-2 text-sm font-semibold text-[var(--foreground)]">
+                  Página {safeCurrentPage}
+                </span>
+                <Link
+                  href={nextPageHref}
+                  aria-disabled={safeCurrentPage >= totalPages}
+                  className={`rounded-lg px-3 py-2 text-sm font-semibold transition ${
+                    safeCurrentPage >= totalPages
+                      ? "pointer-events-none border border-[var(--border)] text-[var(--muted-foreground)] opacity-50"
+                      : "border border-[var(--border)] bg-white text-[var(--foreground)] hover:bg-[var(--background)]"
+                  }`}
+                >
+                  Próxima
+                </Link>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="min-w-full border-separate border-spacing-y-3">
+                <thead>
+                  <tr className="text-left text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted-foreground)]">
+                    <th className="px-4 py-2">Aluno</th>
+                    <th className="px-4 py-2">Turma/Horário</th>
+                    <th className="px-4 py-2">Professor</th>
+                    <th className="px-4 py-2">Contato</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {students?.map((student) => (
+                    <tr key={student.id} className="rounded-2xl bg-[var(--panel)]">
+                      <td className="rounded-l-2xl px-4 py-4">
+                        <div className="font-semibold text-[var(--foreground)]">
+                          {student.full_name}
+                        </div>
+                        <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-[var(--muted-foreground)]">
+                          <span>
+                            Cadastrado em{" "}
+                            {new Date(student.created_at).toLocaleDateString("pt-BR")}
+                          </span>
+                          <span
+                            className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                              student.is_active
+                                ? "bg-[rgba(240,253,244,0.92)] text-[rgb(21,128,61)]"
+                                : "bg-[rgba(241,245,249,0.96)] text-[var(--muted-foreground)]"
+                            }`}
+                          >
+                            {student.is_active ? "Ativo" : "Inativo"}
+                          </span>
+                          {student.is_scholarship ? (
+                            <span className="rounded-full bg-[rgba(254,249,195,0.9)] px-2 py-0.5 text-xs font-semibold text-[rgb(133,77,14)]">
+                              Bolsista
+                            </span>
+                          ) : null}
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 text-sm text-[var(--foreground)]">
+                        {student.class_name ?? "-"}
+                      </td>
+                      <td className="px-4 py-4 text-sm text-[var(--foreground)]">
+                        {student.teacher_name ?? "-"}
+                      </td>
+                      <td className="rounded-r-2xl px-4 py-4 text-sm text-[var(--foreground)]">
+                        <div>{student.phone ?? "-"}</div>
+                        <div className="mt-1 text-[var(--muted-foreground)]">
+                          {student.email ?? "-"}
+                        </div>
+                        <div className="mt-3 flex gap-3">
+                          <Link
+                            href={`/students/${student.id}`}
+                            className="text-sm font-semibold text-[var(--accent)]"
+                          >
+                            Ver detalhes
+                          </Link>
+                          <Link
+                            href={`/students/${student.id}#pagamentos-do-aluno`}
+                            className="text-sm font-semibold text-[var(--foreground)]"
+                          >
+                            Visualizar pagamentos
+                          </Link>
+                          <Link
+                            href={`/students/${student.id}/edit`}
+                            className="text-sm font-semibold text-[var(--foreground)]"
+                          >
+                            Editar
+                          </Link>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         ) : (
           <div className="rounded-[24px] border border-dashed border-[var(--border)] bg-[var(--panel)] px-6 py-12 text-center">
             <p className="text-lg font-semibold text-[var(--foreground)]">

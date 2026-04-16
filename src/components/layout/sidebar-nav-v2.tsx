@@ -35,7 +35,7 @@ export function SidebarNavV2() {
   const pathname = usePathname();
 
   return (
-    <nav className="space-y-2">
+    <nav className="space-y-1.5">
       {navItems.map((item) => {
         const isActive =
           pathname === item.href ||
@@ -45,14 +45,16 @@ export function SidebarNavV2() {
           <Link
             key={item.href}
             href={item.href}
-            className={`block rounded-2xl border px-4 py-3 transition ${
+            className={`block rounded-[18px] border px-3.5 py-2.5 transition ${
               isActive
                 ? "border-[rgba(236,28,36,0.22)] bg-[rgba(236,28,36,0.08)] text-[var(--foreground)] shadow-sm"
                 : "border-transparent text-[var(--muted-foreground)] hover:border-[var(--border)] hover:bg-white"
             }`}
           >
-            <div className="text-sm font-semibold">{item.label}</div>
-            <div className="mt-1 text-xs">{item.description}</div>
+            <div className="text-[13px] font-semibold leading-[1.15]">
+              {item.label}
+            </div>
+            <div className="mt-0.5 text-[11px] leading-4">{item.description}</div>
           </Link>
         );
       })}

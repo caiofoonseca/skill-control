@@ -24,38 +24,42 @@ export default async function DashboardLayout({
   return (
     <div className="min-h-screen bg-[var(--background)]">
       <TabSessionGuard />
-      <div className="mx-auto grid min-h-screen w-full max-w-7xl gap-6 px-4 py-4 lg:grid-cols-[280px_minmax(0,1fr)] lg:px-6">
-        <aside className="rounded-[32px] border border-[var(--border)] bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(231,240,252,0.55))] p-5 shadow-sm lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:self-start lg:overflow-y-auto">
-          <div className="rounded-[24px] bg-[linear-gradient(180deg,rgba(236,28,36,1),rgba(200,22,29,1))] px-5 py-5 text-white shadow-lg shadow-[rgba(236,28,36,0.24)]">
-            <div className="rounded-[18px] bg-white/95 px-3 py-3">
+      <div className="mx-auto grid min-h-screen w-full max-w-7xl gap-5 px-4 py-4 lg:grid-cols-[260px_minmax(0,1fr)] lg:px-6">
+        <aside className="rounded-[28px] border border-[var(--border)] bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(231,240,252,0.55))] p-4 shadow-sm lg:sticky lg:top-4 lg:self-start">
+          <div className="rounded-[22px] bg-[linear-gradient(180deg,rgba(236,28,36,1),rgba(200,22,29,1))] px-4 py-4 text-white shadow-lg shadow-[rgba(236,28,36,0.24)]">
+            <div className="rounded-[16px] bg-white/95 px-3 py-2.5">
               <Image
                 src="/brand/skill-logo.png"
                 alt="Logo da Skill Idiomas"
                 width={160}
                 height={68}
-                className="h-14 w-auto object-contain"
+                className="h-12 w-auto object-contain"
                 priority
               />
             </div>
-            <p className="mt-4 text-sm font-medium text-white/80">Skill Idiomas</p>
-            <h1 className="mt-1 text-2xl font-semibold">Gestão Escolar</h1>
-            <p className="mt-3 text-sm leading-6 text-white/85">
+            <p className="mt-3 text-xs font-medium uppercase tracking-[0.14em] text-white/75">
+              Skill Idiomas
+            </p>
+            <h1 className="mt-1 text-xl font-semibold leading-tight">
+              Gestão Escolar
+            </h1>
+            <p className="mt-2 text-sm leading-5 text-white/85">
               Painel administrativo da unidade Graças, Recife.
             </p>
           </div>
 
-          <div className="mt-6">
-            <p className="mb-3 px-2 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--muted-foreground)]">
+          <div className="mt-5">
+            <p className="mb-2 px-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--muted-foreground)]">
               Navegação
             </p>
             <SidebarNavV2 />
           </div>
 
-          <div className="mt-6 rounded-[24px] border border-[var(--border)] bg-white p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--primary)]">
+          <div className="mt-5 rounded-[20px] border border-[var(--border)] bg-white px-4 py-3.5">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--primary)]">
               Usuário conectado
             </p>
-            <p className="mt-3 text-sm font-semibold text-[var(--foreground)]">
+            <p className="mt-2 text-sm font-semibold leading-5 text-[var(--foreground)]">
               {user.email}
             </p>
           </div>
