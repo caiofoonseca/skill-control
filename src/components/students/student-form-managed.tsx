@@ -288,6 +288,7 @@ export function StudentFormManaged({
     ),
   );
   const formRef = useRef<HTMLFormElement>(null);
+  const isSubmittingRef = useRef(false);
   const allowNavigationRef = useRef(false);
   const pendingNavigationRef = useRef<(() => void) | null>(null);
   const isFinancialManual = financialContactSource === "manual";
@@ -369,6 +370,13 @@ export function StudentFormManaged({
     setFinancialPreview(getGuardianPreview(new FormData(form), source));
   }
 
+  function handleFormChange(form: HTMLFormElement) {
+    setIsDirty(true);
+    if (!isFinancialManual) {
+      updateFinancialPreview(form);
+    }
+  }
+
   function continueWithoutSaving() {
     const pendingNavigation = pendingNavigationRef.current;
     pendingNavigationRef.current = null;
@@ -418,13 +426,14 @@ export function StudentFormManaged({
         ref={formRef}
         className="space-y-4"
         noValidate
-        onChange={(event) => {
-          setIsDirty(true);
-          if (!isFinancialManual) {
-            updateFinancialPreview(event.currentTarget);
-          }
-        }}
+        onInput={(event) => handleFormChange(event.currentTarget)}
+        onChange={(event) => handleFormChange(event.currentTarget)}
         onSubmit={(event) => {
+          if (isSubmittingRef.current) {
+            event.preventDefault();
+            return;
+          }
+
           const form = event.currentTarget;
           for (const input of Array.from(form.elements)) {
             if (input instanceof HTMLInputElement) {
@@ -438,6 +447,7 @@ export function StudentFormManaged({
 
           if (firstInvalidField) {
             event.preventDefault();
+            isSubmittingRef.current = false;
             setIsSubmitting(false);
             setFieldErrors(nextFieldErrors);
 
@@ -452,6 +462,7 @@ export function StudentFormManaged({
             return;
           }
 
+          isSubmittingRef.current = true;
           setFieldErrors({});
           setIsSubmitting(true);
         }}
@@ -761,9 +772,10 @@ export function StudentFormManaged({
           </Link>
           <button
             type="submit"
-            className="rounded-lg bg-[var(--primary)] px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-95"
+            disabled={isSubmitting}
+            className="rounded-lg bg-[var(--primary)] px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-65"
           >
-            {submitLabel}
+            {isSubmitting ? "Salvando..." : submitLabel}
           </button>
         </div>
       </form>
