@@ -10,7 +10,7 @@ type PageProps = {
 
 export default async function NewStudentPage({ searchParams }: PageProps) {
   const params = await searchParams;
-  const { classOptions, teacherOptions } = await getStudentOptions();
+  const { classOptions, teacherOptions, bookOptions } = await getStudentOptions();
 
   return (
     <StudentFormManaged
@@ -22,6 +22,7 @@ export default async function NewStudentPage({ searchParams }: PageProps) {
       error={params.error}
       classOptions={classOptions}
       teacherOptions={teacherOptions}
+      bookOptions={bookOptions}
     />
   );
 }

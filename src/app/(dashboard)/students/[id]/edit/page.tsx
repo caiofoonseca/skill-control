@@ -21,7 +21,7 @@ export default async function EditStudentPage({
 }: PageProps) {
   const { id } = await params;
   const { error } = await searchParams;
-  const { classOptions, teacherOptions } = await getStudentOptions();
+  const { classOptions, teacherOptions, bookOptions } = await getStudentOptions();
   const { student, guardians, financialContact, paymentPlans } = await getStudentDetails(id);
 
   if (!student) {
@@ -97,6 +97,7 @@ export default async function EditStudentPage({
       values={values}
       classOptions={classOptions}
       teacherOptions={teacherOptions}
+      bookOptions={bookOptions}
       studentId={student.id}
       existingPayments={paymentPlans.map((plan) => ({
         id: plan.id,

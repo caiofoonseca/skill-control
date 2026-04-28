@@ -1,59 +1,60 @@
 ﻿"use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { InlinePaymentFields } from "@/components/students/inline-payment-fields";
 import { BRAZIL_STATE_OPTIONS } from "@/lib/brazil/states";
 import { validateStudentFormFields } from "@/lib/students/form-helpers";
 
-const studentFields = [
+const studentPersonalFields = [
   { name: "full_name", label: "Nome", required: true, pattern: "[A-Za-zÀ-ÖØ-öø-ÿ' ]+" },
+  { name: "rg", label: "RG" },
+  { name: "birth_date", label: "Data de nascimento", type: "date" },
+  { name: "email", label: "E-mail", type: "email" },
+  { name: "phone", label: "Celular", inputMode: "tel", pattern: "[0-9()\\-+ ]{8,16}", format: "phone" },
+  { name: "cpf", label: "CPF", inputMode: "numeric", pattern: "[0-9.\\- ]{11,14}", format: "cpf" },
+  { name: "instagram", label: "Instagram" },
+  { name: "profession", label: "Profissão" },
+] as const;
+
+const studentAddressFields = [
   { name: "address", label: "Endereço" },
   { name: "address_number", label: "Número", pattern: "[0-9][0-9\\-/ ]*" },
-  { name: "apartment", label: "Apto" },
+  { name: "apartment", label: "Complemento" },
   { name: "neighborhood", label: "Bairro" },
-  { name: "city", label: "Cidade" },
-  { name: "zip_code", label: "CEP", inputMode: "numeric", pattern: "[0-9.\\- ]{8,10}" },
-  { name: "instagram", label: "Instagram" },
-  { name: "email", label: "E-mail", type: "email" },
-  { name: "birth_date", label: "Data de nascimento", type: "date" },
-  { name: "cpf", label: "CPF", inputMode: "numeric", pattern: "[0-9.\\- ]{11,14}" },
-  { name: "rg", label: "RG" },
-  { name: "phone", label: "Celular", inputMode: "tel", pattern: "[0-9()\\-+ ]{8,16}" },
-  { name: "profession", label: "Profissão" },
 ] as const;
 
 const guardian1Fields = [
   { name: "guardian1_full_name", label: "Nome", pattern: "[A-Za-zÀ-ÖØ-öø-ÿ' ]+" },
-  { name: "guardian1_cpf", label: "CPF", inputMode: "numeric", pattern: "[0-9.\\- ]{11,14}" },
+  { name: "guardian1_cpf", label: "CPF", inputMode: "numeric", pattern: "[0-9.\\- ]{11,14}", format: "cpf" },
   { name: "guardian1_profession", label: "Profissão" },
   { name: "guardian1_company", label: "Empresa" },
-  { name: "guardian1_phone", label: "Celular", inputMode: "tel", pattern: "[0-9()\\-+ ]{8,16}" },
-  { name: "guardian1_work_phone", label: "Telefone comercial", inputMode: "tel", pattern: "[0-9()\\-+ ]{8,16}" },
+  { name: "guardian1_phone", label: "Celular", inputMode: "tel", pattern: "[0-9()\\-+ ]{8,16}", format: "phone" },
+  { name: "guardian1_work_phone", label: "Telefone comercial", inputMode: "tel", pattern: "[0-9()\\-+ ]{8,16}", format: "phone" },
   { name: "guardian1_email", label: "E-mail", type: "email" },
   { name: "guardian1_instagram", label: "Instagram" },
 ] as const;
 
 const guardian2Fields = [
   { name: "guardian2_full_name", label: "Nome", pattern: "[A-Za-zÀ-ÖØ-öø-ÿ' ]+" },
-  { name: "guardian2_cpf", label: "CPF", inputMode: "numeric", pattern: "[0-9.\\- ]{11,14}" },
+  { name: "guardian2_cpf", label: "CPF", inputMode: "numeric", pattern: "[0-9.\\- ]{11,14}", format: "cpf" },
   { name: "guardian2_profession", label: "Profissão" },
   { name: "guardian2_company", label: "Empresa" },
-  { name: "guardian2_phone", label: "Celular", inputMode: "tel", pattern: "[0-9()\\-+ ]{8,16}" },
-  { name: "guardian2_work_phone", label: "Telefone comercial", inputMode: "tel", pattern: "[0-9()\\-+ ]{8,16}" },
+  { name: "guardian2_phone", label: "Celular", inputMode: "tel", pattern: "[0-9()\\-+ ]{8,16}", format: "phone" },
+  { name: "guardian2_work_phone", label: "Telefone comercial", inputMode: "tel", pattern: "[0-9()\\-+ ]{8,16}", format: "phone" },
   { name: "guardian2_email", label: "E-mail", type: "email" },
   { name: "guardian2_instagram", label: "Instagram" },
 ] as const;
 
 const financialFields = [
   { name: "financial_full_name", label: "Nome", pattern: "[A-Za-zÀ-ÖØ-öø-ÿ' ]+" },
-  { name: "financial_cpf", label: "CPF", inputMode: "numeric", pattern: "[0-9.\\- ]{11,14}" },
+  { name: "financial_cpf", label: "CPF", inputMode: "numeric", pattern: "[0-9.\\- ]{11,14}", format: "cpf" },
   { name: "financial_address", label: "Endereço" },
   { name: "financial_profession", label: "Profissão" },
   { name: "financial_company", label: "Empresa" },
-  { name: "financial_phone", label: "Celular", inputMode: "tel", pattern: "[0-9()\\-+ ]{8,16}" },
-  { name: "financial_work_phone", label: "Telefone comercial", inputMode: "tel", pattern: "[0-9()\\-+ ]{8,16}" },
+  { name: "financial_phone", label: "Celular", inputMode: "tel", pattern: "[0-9()\\-+ ]{8,16}", format: "phone" },
+  { name: "financial_work_phone", label: "Telefone comercial", inputMode: "tel", pattern: "[0-9()\\-+ ]{8,16}", format: "phone" },
   { name: "financial_email", label: "E-mail", type: "email" },
 ] as const;
 
@@ -82,6 +83,7 @@ type ClassOption = {
   teacherId: string | null;
   teacherName: string | null;
 };
+type BookOption = { id: string; name: string };
 type ExistingPaymentPlan = {
   id: string;
   title: string;
@@ -91,6 +93,17 @@ type ExistingPaymentPlan = {
 };
 
 type FinancialContactSource = "manual" | "primary" | "secondary";
+type StandardFormat = "cpf" | "phone" | "zip";
+
+type GuardianPreview = {
+  name: string;
+  cpf: string;
+  phone: string;
+  workPhone: string;
+  email: string;
+  profession: string;
+  company: string;
+};
 
 function inputClassName() {
   return "mt-1.5 w-full rounded-lg border border-[var(--border)] bg-white px-3 py-2 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[rgba(182,133,58,0.18)]";
@@ -102,6 +115,78 @@ function fieldClassName(hasError: boolean) {
   }
 
   return "mt-1.5 w-full rounded-lg border border-[rgb(185,28,28)] bg-white px-3 py-2 text-sm text-[var(--foreground)] outline-none transition focus:border-[rgb(185,28,28)] focus:ring-2 focus:ring-[rgba(185,28,28,0.18)]";
+}
+
+function onlyDigits(value: string) {
+  return value.replace(/\D/g, "");
+}
+
+function formatCpf(value: string) {
+  const digits = onlyDigits(value).slice(0, 11);
+  if (digits.length !== 11) return value;
+  return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+}
+
+function formatZipCode(value: string) {
+  const digits = onlyDigits(value).slice(0, 8);
+  if (digits.length !== 8) return value;
+  return `${digits.slice(0, 5)}-${digits.slice(5)}`;
+}
+
+function formatPhone(value: string) {
+  const digits = onlyDigits(value).slice(0, 11);
+  if (digits.length === 11) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+  }
+  if (digits.length === 10) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+  }
+  return value;
+}
+
+function formatStandardValue(value: string, format?: StandardFormat) {
+  if (!format || !value.trim()) return value;
+  if (format === "cpf") return formatCpf(value);
+  if (format === "zip") return formatZipCode(value);
+  return formatPhone(value);
+}
+
+function getGuardianPreview(formData: FormData, source: FinancialContactSource): GuardianPreview | null {
+  if (source === "manual") return null;
+
+  const prefix = source === "primary" ? "guardian1" : "guardian2";
+  const name = String(formData.get(`${prefix}_full_name`) ?? "").trim();
+
+  if (!name) return null;
+
+  return {
+    name,
+    cpf: String(formData.get(`${prefix}_cpf`) ?? "").trim(),
+    phone: String(formData.get(`${prefix}_phone`) ?? "").trim(),
+    workPhone: String(formData.get(`${prefix}_work_phone`) ?? "").trim(),
+    email: String(formData.get(`${prefix}_email`) ?? "").trim(),
+    profession: String(formData.get(`${prefix}_profession`) ?? "").trim(),
+    company: String(formData.get(`${prefix}_company`) ?? "").trim(),
+  };
+}
+
+function getGuardianPreviewFromValues(values: FormValues | undefined, source: FinancialContactSource) {
+  if (!values || source === "manual") return null;
+
+  const prefix = source === "primary" ? "guardian1" : "guardian2";
+  const name = String(values[`${prefix}_full_name`] ?? "").trim();
+
+  if (!name) return null;
+
+  return {
+    name,
+    cpf: String(values[`${prefix}_cpf`] ?? "").trim(),
+    phone: String(values[`${prefix}_phone`] ?? "").trim(),
+    workPhone: String(values[`${prefix}_work_phone`] ?? "").trim(),
+    email: String(values[`${prefix}_email`] ?? "").trim(),
+    profession: String(values[`${prefix}_profession`] ?? "").trim(),
+    company: String(values[`${prefix}_company`] ?? "").trim(),
+  };
 }
 
 function FieldGrid({
@@ -117,6 +202,7 @@ function FieldGrid({
     pattern?: string;
     maxLength?: number;
     inputMode?: "numeric" | "tel";
+    format?: StandardFormat;
   }>;
   values?: FormValues;
   errors?: Record<string, string>;
@@ -137,6 +223,10 @@ function FieldGrid({
               maxLength={field.maxLength}
               inputMode={field.inputMode}
               defaultValue={values?.[field.name] ?? ""}
+              data-format={field.format}
+              onBlur={(event) => {
+                event.currentTarget.value = formatStandardValue(event.currentTarget.value, field.format);
+              }}
               aria-invalid={Boolean(fieldError)}
               aria-describedby={fieldError ? `${field.name}-error` : undefined}
               className={fieldClassName(Boolean(fieldError))}
@@ -163,6 +253,7 @@ type StudentFormProps = {
   values?: FormValues;
   classOptions: ClassOption[];
   teacherOptions: TeacherOption[];
+  bookOptions?: BookOption[];
   studentId?: string;
   existingPayments?: ExistingPaymentPlan[];
 };
@@ -177,6 +268,7 @@ export function StudentFormManaged({
   values,
   classOptions,
   teacherOptions,
+  bookOptions = [],
   studentId,
   existingPayments = [],
 }: StudentFormProps) {
@@ -186,7 +278,82 @@ export function StudentFormManaged({
     (values?.financial_contact_source as FinancialContactSource | undefined) ?? "manual",
   );
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [isDirty, setIsDirty] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showUnsavedModal, setShowUnsavedModal] = useState(false);
+  const [financialPreview, setFinancialPreview] = useState<GuardianPreview | null>(() =>
+    getGuardianPreviewFromValues(
+      values,
+      (values?.financial_contact_source as FinancialContactSource | undefined) ?? "manual",
+    ),
+  );
+  const formRef = useRef<HTMLFormElement>(null);
+  const allowNavigationRef = useRef(false);
+  const pendingNavigationRef = useRef<(() => void) | null>(null);
   const isFinancialManual = financialContactSource === "manual";
+  const currentBookOptions = useMemo(() => {
+    const bookNames = bookOptions.map((book) => book.name);
+    const value = values?.current_book;
+
+    if (value && !bookNames.includes(value)) {
+      return [{ id: "current-book-value", name: value }, ...bookOptions];
+    }
+
+    return bookOptions;
+  }, [bookOptions, values?.current_book]);
+
+  useEffect(() => {
+    if (!isDirty || isSubmitting) return;
+
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [isDirty, isSubmitting]);
+
+  useEffect(() => {
+    if (!isDirty || isSubmitting) return;
+
+    const handleDocumentClick = (event: globalThis.MouseEvent) => {
+      if (allowNavigationRef.current) return;
+
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      if (target.closest("[data-unsaved-modal]")) return;
+
+      const anchor = target.closest("a[href]");
+      if (anchor instanceof HTMLAnchorElement) {
+        const href = anchor.href;
+
+        if (!href || href === window.location.href) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+        pendingNavigationRef.current = () => {
+          window.location.assign(href);
+        };
+        setShowUnsavedModal(true);
+        return;
+      }
+
+      const button = target.closest("button");
+      if (!(button instanceof HTMLButtonElement)) return;
+      if (button.form === formRef.current && button.type === "submit") return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      pendingNavigationRef.current = () => {
+        button.click();
+      };
+      setShowUnsavedModal(true);
+    };
+
+    document.addEventListener("click", handleDocumentClick, true);
+    return () => document.removeEventListener("click", handleDocumentClick, true);
+  }, [isDirty, isSubmitting]);
 
   function handleClassChange(nextClassName: string) {
     setSelectedClassName(nextClassName);
@@ -196,6 +363,23 @@ export function StudentFormManaged({
     if (selectedClass?.teacherName) {
       setTeacherName(selectedClass.teacherName);
     }
+  }
+
+  function updateFinancialPreview(form: HTMLFormElement, source = financialContactSource) {
+    setFinancialPreview(getGuardianPreview(new FormData(form), source));
+  }
+
+  function continueWithoutSaving() {
+    const pendingNavigation = pendingNavigationRef.current;
+    pendingNavigationRef.current = null;
+    allowNavigationRef.current = true;
+    setIsDirty(false);
+    setShowUnsavedModal(false);
+    pendingNavigation?.();
+
+    window.setTimeout(() => {
+      allowNavigationRef.current = false;
+    }, 0);
   }
 
   return (
@@ -231,15 +415,30 @@ export function StudentFormManaged({
 
       <form
         action={action}
+        ref={formRef}
         className="space-y-4"
         noValidate
+        onChange={(event) => {
+          setIsDirty(true);
+          if (!isFinancialManual) {
+            updateFinancialPreview(event.currentTarget);
+          }
+        }}
         onSubmit={(event) => {
           const form = event.currentTarget;
+          for (const input of Array.from(form.elements)) {
+            if (input instanceof HTMLInputElement) {
+              const format = input.dataset.format as StandardFormat | undefined;
+              input.value = formatStandardValue(input.value, format);
+            }
+          }
+
           const nextFieldErrors = validateStudentFormFields(new FormData(form));
           const firstInvalidField = Object.keys(nextFieldErrors)[0];
 
           if (firstInvalidField) {
             event.preventDefault();
+            setIsSubmitting(false);
             setFieldErrors(nextFieldErrors);
 
             requestAnimationFrame(() => {
@@ -254,6 +453,7 @@ export function StudentFormManaged({
           }
 
           setFieldErrors({});
+          setIsSubmitting(true);
         }}
       >
         <div className="rounded-lg border border-[var(--border)] bg-white p-5 shadow-sm">
@@ -283,9 +483,38 @@ export function StudentFormManaged({
             </div>
           </div>
           <div className="mt-4">
-            <FieldGrid fields={studentFields} values={values} errors={fieldErrors} />
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--muted-foreground)]">
+              Dados pessoais
+            </p>
+            <div className="mt-3">
+              <FieldGrid fields={studentPersonalFields} values={values} errors={fieldErrors} />
+            </div>
           </div>
-          <div className="mt-3 grid gap-3 md:grid-cols-3">
+          <div className="mt-5">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--muted-foreground)]">
+              Endereço
+            </p>
+            <div className="mt-3">
+              <FieldGrid fields={studentAddressFields} values={values} errors={fieldErrors} />
+            </div>
+          </div>
+          <div className="mt-3 grid gap-3 md:grid-cols-[minmax(0,1fr)_160px_minmax(0,1fr)]">
+            <label className="block text-sm font-medium text-[var(--foreground)]">
+              Cidade
+              <input
+                name="city"
+                defaultValue={values?.city ?? ""}
+                className={fieldClassName(Boolean(fieldErrors.city))}
+                aria-invalid={Boolean(fieldErrors.city)}
+                aria-describedby={fieldErrors.city ? "city-error" : undefined}
+              />
+              {fieldErrors.city ? (
+                <span id="city-error" className="mt-1 block text-xs font-semibold text-[rgb(185,28,28)]">
+                  {fieldErrors.city}
+                </span>
+              ) : null}
+            </label>
+
             <label className="block text-sm font-medium text-[var(--foreground)]">
               UF
               <select
@@ -310,14 +539,49 @@ export function StudentFormManaged({
             </label>
 
             <label className="block text-sm font-medium text-[var(--foreground)]">
-              Livro atual
+              CEP
               <input
+                name="zip_code"
+                defaultValue={values?.zip_code ?? ""}
+                inputMode="numeric"
+                pattern="[0-9.\- ]{8,10}"
+                data-format="zip"
+                onBlur={(event) => {
+                  event.currentTarget.value = formatZipCode(event.currentTarget.value);
+                }}
+                className={fieldClassName(Boolean(fieldErrors.zip_code))}
+                aria-invalid={Boolean(fieldErrors.zip_code)}
+                aria-describedby={fieldErrors.zip_code ? "zip-code-error" : undefined}
+              />
+              {fieldErrors.zip_code ? (
+                <span id="zip-code-error" className="mt-1 block text-xs font-semibold text-[rgb(185,28,28)]">
+                  {fieldErrors.zip_code}
+                </span>
+              ) : null}
+            </label>
+          </div>
+          <div className="mt-5">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--muted-foreground)]">
+              Curso
+            </p>
+          </div>
+          <div className="mt-3 grid gap-3 md:grid-cols-3">
+            <label className="block text-sm font-medium text-[var(--foreground)]">
+              Livro atual
+              <select
                 name="current_book"
                 defaultValue={values?.current_book ?? ""}
                 className={fieldClassName(Boolean(fieldErrors.current_book))}
                 aria-invalid={Boolean(fieldErrors.current_book)}
                 aria-describedby={fieldErrors.current_book ? "current_book-error" : undefined}
-              />
+              >
+                <option value="">Selecione</option>
+                {currentBookOptions.map((book) => (
+                  <option key={book.id} value={book.name}>
+                    {book.name}
+                  </option>
+                ))}
+              </select>
               {fieldErrors.current_book ? (
                 <span id="current_book-error" className="mt-1 block text-xs font-semibold text-[rgb(185,28,28)]">
                   {fieldErrors.current_book}
@@ -439,7 +703,14 @@ export function StudentFormManaged({
               <select
                 name="financial_contact_source"
                 value={financialContactSource}
-                onChange={(event) => setFinancialContactSource(event.target.value as FinancialContactSource)}
+                onChange={(event) => {
+                  const nextSource = event.target.value as FinancialContactSource;
+                  setFinancialContactSource(nextSource);
+                  setIsDirty(true);
+                  if (event.currentTarget.form) {
+                    updateFinancialPreview(event.currentTarget.form, nextSource);
+                  }
+                }}
                 className={fieldClassName(Boolean(fieldErrors.financial_contact_source))}
                 aria-invalid={Boolean(fieldErrors.financial_contact_source)}
                 aria-describedby={fieldErrors.financial_contact_source ? "financial-contact-source-error" : undefined}
@@ -460,9 +731,23 @@ export function StudentFormManaged({
               <FieldGrid fields={financialFields} values={values} errors={fieldErrors} />
             </fieldset>
             {!isFinancialManual ? (
-              <p className="mt-3 text-sm leading-6 text-[var(--muted-foreground)]">
-                Os dados do responsável financeiro serão reaproveitados automaticamente do responsável selecionado.
-              </p>
+              <div className="mt-3 rounded-lg border border-[var(--border)] bg-[var(--panel)] px-4 py-3 text-sm leading-6 text-[var(--foreground)]">
+                {financialPreview ? (
+                  <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+                    <p><span className="font-semibold">Nome:</span> {financialPreview.name}</p>
+                    <p><span className="font-semibold">CPF:</span> {financialPreview.cpf || "-"}</p>
+                    <p><span className="font-semibold">Celular:</span> {financialPreview.phone || "-"}</p>
+                    <p><span className="font-semibold">Telefone comercial:</span> {financialPreview.workPhone || "-"}</p>
+                    <p><span className="font-semibold">E-mail:</span> {financialPreview.email || "-"}</p>
+                    <p><span className="font-semibold">Profissão:</span> {financialPreview.profession || "-"}</p>
+                    <p><span className="font-semibold">Empresa:</span> {financialPreview.company || "-"}</p>
+                  </div>
+                ) : (
+                  <p className="text-[var(--muted-foreground)]">
+                    Preencha o nome do responsável selecionado para visualizar os dados que serão reaproveitados.
+                  </p>
+                )}
+              </div>
             ) : null}
           </div>
         </div>
@@ -482,6 +767,41 @@ export function StudentFormManaged({
           </button>
         </div>
       </form>
+
+      {showUnsavedModal ? (
+        <div
+          data-unsaved-modal
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(15,23,42,0.44)] px-4 py-6"
+        >
+          <div className="w-full max-w-md rounded-lg border border-[rgba(180,83,9,0.18)] bg-white p-6 shadow-2xl shadow-[rgba(15,23,42,0.22)]">
+            <h2 className="text-xl font-semibold text-[var(--foreground)]">
+              Sair sem salvar?
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-[var(--muted-foreground)]">
+              Existem dados preenchidos que ainda não foram salvos. Se você sair agora, todo o cadastro digitado será perdido.
+            </p>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  pendingNavigationRef.current = null;
+                  setShowUnsavedModal(false);
+                }}
+                className="rounded-lg border border-[var(--border)] bg-white px-4 py-2.5 text-sm font-semibold text-[var(--foreground)] transition hover:bg-[var(--panel)]"
+              >
+                Voltar ao cadastro
+              </button>
+              <button
+                type="button"
+                onClick={continueWithoutSaving}
+                className="rounded-lg bg-[var(--primary)] px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-95"
+              >
+                Sair sem salvar
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

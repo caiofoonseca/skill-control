@@ -12,6 +12,12 @@ type TeacherOption = {
   active?: boolean;
 };
 
+type BookOption = {
+  id: string;
+  name: string;
+  active?: boolean;
+};
+
 type ClassOptionRow = {
   id: string;
   name: string;
@@ -46,7 +52,7 @@ function getTeacherName(value: ClassOptionRow["teachers"]) {
 export async function getStudentOptions() {
   const supabase = await createSupabaseServerClient();
 
-  const [{ data: classes }, { data: teachers }] = await Promise.all([
+  const [{ data: classes }, { data: teachers }, { data: books }] = await Promise.all([
     supabase
       .from("course_classes")
       .select("id, name, teacher_id, teachers(name)")
@@ -57,10 +63,16 @@ export async function getStudentOptions() {
       .select("id, name")
       .eq("active", true)
       .order("name", { ascending: true }),
+    supabase
+      .from("books")
+      .select("id, name")
+      .eq("active", true)
+      .order("name", { ascending: true }),
   ]);
 
   const classRows = (classes ?? []) as ClassOptionRow[];
   const teacherRows = (teachers ?? []) as TeacherOption[];
+  const bookRows = (books ?? []) as BookOption[];
 
   return {
     classOptions: classRows.map((item) => ({
@@ -70,7 +82,30 @@ export async function getStudentOptions() {
       teacherName: getTeacherName(item.teachers),
     })),
     teacherOptions: teacherRows,
+    bookOptions: bookRows,
   };
+}
+
+export async function getBookManagementData() {
+  const supabase = await createSupabaseServerClient();
+
+  const [{ data: books }, { data: students }] = await Promise.all([
+    supabase.from("books").select("*").order("name", { ascending: true }),
+    supabase.from("students").select("id, current_book"),
+  ]);
+
+  const bookRows = (books ?? []) as BookOption[];
+  const usageMap = new Map<string, number>();
+
+  for (const student of students ?? []) {
+    if (!student.current_book) continue;
+    usageMap.set(student.current_book, (usageMap.get(student.current_book) ?? 0) + 1);
+  }
+
+  return bookRows.map((book) => ({
+    ...book,
+    studentCount: usageMap.get(book.name) ?? 0,
+  }));
 }
 
 export async function getClassManagementData() {

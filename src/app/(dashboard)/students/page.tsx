@@ -371,19 +371,19 @@ export default async function StudentsPage({ searchParams }: PageProps) {
             </div>
 
             <div className="overflow-x-auto">
-              <table className="min-w-full border-separate border-spacing-y-3">
+              <table className="min-w-full border-collapse">
                 <thead>
-                  <tr className="text-left text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted-foreground)]">
+                  <tr className="border-b border-[rgba(15,23,42,0.08)] text-left text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted-foreground)]">
                     <th className="px-4 py-2">Aluno</th>
                     <th className="px-4 py-2">Turma/Horário</th>
                     <th className="px-4 py-2">Professor</th>
                     <th className="px-4 py-2">Contato</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-[rgba(15,23,42,0.07)]">
                   {students?.map((student) => (
-                    <tr key={student.id} className="rounded-2xl bg-[var(--panel)]">
-                      <td className="rounded-l-2xl px-4 py-4">
+                    <tr key={student.id} className="transition hover:bg-[rgba(231,240,252,0.32)]">
+                      <td className="px-4 py-5">
                         <div className="font-semibold text-[var(--foreground)]">
                           {student.full_name}
                         </div>
@@ -414,7 +414,7 @@ export default async function StudentsPage({ searchParams }: PageProps) {
                       <td className="px-4 py-4 text-sm text-[var(--foreground)]">
                         {student.teacher_name ?? "-"}
                       </td>
-                      <td className="rounded-r-2xl px-4 py-4 text-sm text-[var(--foreground)]">
+                      <td className="px-4 py-4 text-sm text-[var(--foreground)]">
                         <div>{student.phone ?? "-"}</div>
                         <div className="mt-1 text-[var(--muted-foreground)]">
                           {student.email ?? "-"}

@@ -20,6 +20,11 @@ const navItems = [
     description: "Cadastro e organização",
   },
   {
+    href: "/books",
+    label: "Cadastro de Livros",
+    description: "Nomes padronizados",
+  },
+  {
     href: "/teachers",
     label: "Gerenciamento de Professores",
     description: "Cadastro e organização",
@@ -35,7 +40,7 @@ export function SidebarNavV2() {
   const pathname = usePathname();
 
   return (
-    <nav className="space-y-1.5">
+    <nav className="space-y-1">
       {navItems.map((item) => {
         const isActive =
           pathname === item.href ||
@@ -45,7 +50,7 @@ export function SidebarNavV2() {
           <Link
             key={item.href}
             href={item.href}
-            className={`block rounded-[18px] border px-3.5 py-2.5 transition ${
+            className={`block rounded-[18px] border px-3.5 py-2 transition ${
               isActive
                 ? "border-[rgba(236,28,36,0.22)] bg-[rgba(236,28,36,0.08)] text-[var(--foreground)] shadow-sm"
                 : "border-transparent text-[var(--muted-foreground)] hover:border-[var(--border)] hover:bg-white"

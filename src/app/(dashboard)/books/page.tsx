@@ -1,5 +1,5 @@
-﻿import { createClassAction, deleteClassAction, updateClassAction } from "./actions";
-import { getClassManagementData, getStudentOptions } from "@/lib/organization/queries";
+import { createBookAction, deleteBookAction, updateBookAction } from "./actions";
+import { getBookManagementData } from "@/lib/organization/queries";
 
 type PageProps = {
   searchParams: Promise<{
@@ -11,25 +11,22 @@ type PageProps = {
   }>;
 };
 
-export default async function ClassesPage({ searchParams }: PageProps) {
+export default async function BooksPage({ searchParams }: PageProps) {
   const params = await searchParams;
-  const [classes, { teacherOptions }] = await Promise.all([
-    getClassManagementData(),
-    getStudentOptions(),
-  ]);
+  const books = await getBookManagementData();
   const editingId = params.editing ?? null;
 
   return (
     <section className="space-y-6">
       <div className="rounded-[28px] border border-[var(--border)] bg-white p-7 shadow-sm">
         <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--accent)]">
-          Turmas
+          Livros
         </p>
         <h2 className="mt-3 text-3xl font-semibold text-[var(--foreground)]">
-          Gerenciamento de turmas
+          Cadastro de livros
         </h2>
         <p className="mt-4 max-w-2xl text-base leading-7 text-[var(--muted-foreground)]">
-          Cadastre e organize as turmas/horários da unidade, associando cada uma ao professor responsável.
+          Padronize os nomes usados no gerenciamento dos alunos.
         </p>
       </div>
 
@@ -39,60 +36,32 @@ export default async function ClassesPage({ searchParams }: PageProps) {
         </div>
       ) : null}
 
-      {params.created ? (
+      {params.created || params.updated || params.deleted ? (
         <div className="rounded-[24px] border border-[rgba(22,101,52,0.16)] bg-[rgba(240,253,244,0.92)] px-5 py-4 text-sm font-medium text-[rgb(21,128,61)] shadow-sm">
-          {params.created}
-        </div>
-      ) : null}
-
-      {params.updated ? (
-        <div className="rounded-[24px] border border-[rgba(22,101,52,0.16)] bg-[rgba(240,253,244,0.92)] px-5 py-4 text-sm font-medium text-[rgb(21,128,61)] shadow-sm">
-          {params.updated}
-        </div>
-      ) : null}
-
-      {params.deleted ? (
-        <div className="rounded-[24px] border border-[rgba(22,101,52,0.16)] bg-[rgba(240,253,244,0.92)] px-5 py-4 text-sm font-medium text-[rgb(21,128,61)] shadow-sm">
-          {params.deleted}
+          {params.created ?? params.updated ?? params.deleted}
         </div>
       ) : null}
 
       <div className="grid items-start gap-6 xl:grid-cols-[0.9fr_1.1fr]">
         <div className="rounded-[28px] border border-[var(--border)] bg-white p-7 shadow-sm">
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--accent)]">
-            Nova turma
+            Novo livro
           </p>
-          <form action={createClassAction} className="mt-5 space-y-4">
+          <form action={createBookAction} className="mt-5 space-y-4">
             <label className="block text-sm font-medium text-[var(--foreground)]">
-              Turma/Horário
+              Nome do livro
               <input
                 name="name"
-                placeholder="Ex.: KIDS CLASS - 15H30 - 17H30"
+                placeholder="Ex.: SKILL BOOSTER 1"
                 className="mt-2 w-full rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[rgba(182,133,58,0.18)]"
               />
-            </label>
-
-            <label className="block text-sm font-medium text-[var(--foreground)]">
-              Professor responsável
-              <select
-                name="teacher_id"
-                defaultValue=""
-                className="mt-2 w-full rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[rgba(182,133,58,0.18)]"
-              >
-                <option value="">Selecione</option>
-                {teacherOptions.map((teacher) => (
-                  <option key={teacher.id} value={teacher.id}>
-                    {teacher.name}
-                  </option>
-                ))}
-              </select>
             </label>
 
             <button
               type="submit"
               className="rounded-xl bg-[var(--primary)] px-5 py-3 text-sm font-semibold text-white transition hover:opacity-95"
             >
-              Salvar turma
+              Salvar livro
             </button>
           </form>
         </div>
@@ -101,65 +70,50 @@ export default async function ClassesPage({ searchParams }: PageProps) {
           <div className="flex items-center justify-between gap-4">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--accent)]">
-                Turmas cadastradas
+                Livros cadastrados
               </p>
               <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">
-                Veja o professor de cada turma e ajuste a associação quando necessário.
+                Edite a nomenclatura e acompanhe quantos alunos usam cada livro.
               </p>
             </div>
             <div className="rounded-full bg-[var(--panel)] px-4 py-2 text-sm font-semibold text-[var(--foreground)]">
-              {classes.length} {classes.length === 1 ? "turma/horário" : "turmas/horários"}
+              {books.length} {books.length === 1 ? "livro" : "livros"}
             </div>
           </div>
 
           <div className="mt-6 space-y-3">
-            {classes.length > 0 ? (
-              classes.map((item) => {
-                const isEditing = editingId === item.id;
+            {books.length > 0 ? (
+              books.map((book) => {
+                const isEditing = editingId === book.id;
 
                 return (
                   <div
-                    key={item.id}
-                    id={`class-${item.id}`}
+                    key={book.id}
+                    id={`book-${book.id}`}
                     className="rounded-[22px] border border-[var(--border)] bg-[var(--panel)] px-4 py-4 scroll-mt-6"
                   >
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                       <div className="max-w-[420px] space-y-1">
                         <p className="text-base font-semibold text-[var(--foreground)]">
-                          {item.name}
+                          {book.name}
                         </p>
                         <p className="text-sm text-[var(--muted-foreground)]">
-                          Professor: {item.teacherName || "Não definido"}
-                        </p>
-                        <p className="text-sm text-[var(--muted-foreground)]">
-                          {item.studentCount} {item.studentCount === 1 ? "aluno vinculado" : "alunos vinculados"}
+                          {book.studentCount} {book.studentCount === 1 ? "aluno vinculado" : "alunos vinculados"}
                         </p>
                       </div>
 
                       {isEditing ? (
                         <div className="flex flex-col gap-3">
                           <form
-                            action={updateClassAction.bind(null, item.id, item.name)}
+                            action={updateBookAction.bind(null, book.id, book.name)}
                             className="flex flex-col gap-3 sm:flex-row sm:flex-wrap"
                           >
                             <input
                               name="name"
-                              defaultValue={item.name}
-                              aria-label={`Editar turma ${item.name}`}
+                              defaultValue={book.name}
+                              aria-label={`Editar livro ${book.name}`}
                               className="min-w-[260px] rounded-xl border border-[var(--border)] bg-white px-4 py-2.5 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--accent)]"
                             />
-                            <select
-                              name="teacher_id"
-                              defaultValue={item.teacher_id ?? ""}
-                              className="min-w-[220px] rounded-xl border border-[var(--border)] bg-white px-4 py-2.5 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--accent)]"
-                            >
-                              <option value="">Selecione</option>
-                              {teacherOptions.map((teacher) => (
-                                <option key={teacher.id} value={teacher.id}>
-                                  {teacher.name}
-                                </option>
-                              ))}
-                            </select>
                             <button
                               type="submit"
                               className="rounded-xl border border-[var(--border)] bg-white px-4 py-2 text-sm font-semibold text-[var(--foreground)] transition hover:bg-white"
@@ -169,7 +123,7 @@ export default async function ClassesPage({ searchParams }: PageProps) {
                           </form>
 
                           <a
-                            href="/classes"
+                            href="/books"
                             className="rounded-xl border border-[var(--border)] bg-white px-4 py-2 text-center text-sm font-semibold text-[var(--foreground)] transition hover:bg-white"
                           >
                             Cancelar
@@ -178,13 +132,13 @@ export default async function ClassesPage({ searchParams }: PageProps) {
                       ) : (
                         <div className="flex flex-col gap-3 sm:flex-row">
                           <a
-                            href={`/classes?editing=${item.id}#class-${item.id}`}
+                            href={`/books?editing=${book.id}#book-${book.id}`}
                             className="rounded-xl border border-[var(--border)] bg-white px-4 py-2 text-center text-sm font-semibold text-[var(--foreground)] transition hover:bg-white"
                           >
                             Editar
                           </a>
 
-                          <form action={deleteClassAction.bind(null, item.id, item.name)}>
+                          <form action={deleteBookAction.bind(null, book.id, book.name)}>
                             <button
                               type="submit"
                               className="rounded-xl border border-[rgba(153,27,27,0.2)] bg-white px-4 py-2 text-sm font-semibold text-[rgb(153,27,27)] transition hover:bg-[rgb(254,242,242)]"
@@ -201,7 +155,7 @@ export default async function ClassesPage({ searchParams }: PageProps) {
             ) : (
               <div className="rounded-[24px] border border-dashed border-[var(--border)] bg-[var(--panel)] px-6 py-10 text-center">
                 <p className="text-base font-semibold text-[var(--foreground)]">
-                  Nenhuma turma/horário cadastrada ainda.
+                  Nenhum livro cadastrado ainda.
                 </p>
               </div>
             )}

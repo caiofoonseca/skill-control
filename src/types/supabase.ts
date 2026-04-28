@@ -9,6 +9,26 @@
 export type Database = {
   public: {
     Tables: {
+      books: {
+        Row: {
+          id: string;
+          created_at: string;
+          updated_at: string;
+          name: string;
+          active: boolean;
+        };
+        Insert: {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+          name: string;
+          active?: boolean;
+        };
+        Update: {
+          name?: string;
+          active?: boolean;
+        };
+      };
       course_classes: {
         Row: {
           id: string;

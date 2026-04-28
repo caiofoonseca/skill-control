@@ -25,7 +25,7 @@ export default async function DashboardLayout({
     <div className="min-h-screen bg-[var(--background)]">
       <TabSessionGuard />
       <div className="mx-auto grid min-h-screen w-full max-w-7xl gap-5 px-4 py-4 lg:grid-cols-[260px_minmax(0,1fr)] lg:px-6">
-        <aside className="rounded-[28px] border border-[var(--border)] bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(231,240,252,0.55))] p-4 shadow-sm lg:sticky lg:top-4 lg:self-start">
+        <aside className="flex max-h-[calc(100vh-2rem)] flex-col overflow-y-auto rounded-[28px] border border-[var(--border)] bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(231,240,252,0.55))] p-4 shadow-sm lg:sticky lg:top-4 lg:self-start">
           <div className="rounded-[22px] bg-[linear-gradient(180deg,rgba(236,28,36,1),rgba(200,22,29,1))] px-4 py-4 text-white shadow-lg shadow-[rgba(236,28,36,0.24)]">
             <div className="rounded-[16px] bg-white/95 px-3 py-2.5">
               <Image
@@ -48,14 +48,14 @@ export default async function DashboardLayout({
             </p>
           </div>
 
-          <div className="mt-5">
+          <div className="mt-4">
             <p className="mb-2 px-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--muted-foreground)]">
               Navegação
             </p>
             <SidebarNavV2 />
           </div>
 
-          <div className="mt-5 rounded-[20px] border border-[var(--border)] bg-white px-4 py-3.5">
+          <div className="mt-4 rounded-[20px] border border-[var(--border)] bg-white px-4 py-3.5">
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--primary)]">
               Usuário conectado
             </p>

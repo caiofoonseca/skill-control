@@ -35,6 +35,29 @@ function onlyDigits(value: string | null) {
   return value?.replace(/\D/g, "") ?? "";
 }
 
+function formatCpf(value: string | null) {
+  const digits = onlyDigits(value);
+  if (digits.length !== 11) return value;
+  return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+}
+
+function formatZipCode(value: string | null) {
+  const digits = onlyDigits(value);
+  if (digits.length !== 8) return value;
+  return `${digits.slice(0, 5)}-${digits.slice(5)}`;
+}
+
+function formatPhone(value: string | null) {
+  const digits = onlyDigits(value);
+  if (digits.length === 11) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+  }
+  if (digits.length === 10) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+  }
+  return value;
+}
+
 function isValidEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value);
 }
@@ -225,7 +248,7 @@ export function validateStudentFormFields(formData: FormData) {
 
   const validations = [
     validateOptionalAddressText(formData, "address", "Endereço"),
-    validateOptionalSimpleText(formData, "apartment", "Apto"),
+    validateOptionalSimpleText(formData, "apartment", "Complemento"),
     validateOptionalAlphaText(formData, "neighborhood", "Bairro"),
     validateOptionalAlphaText(formData, "city", "Cidade"),
     validateOptionalZipCode(formData, "zip_code"),
@@ -324,13 +347,13 @@ export function buildStudentPayload(
     neighborhood: getTextValue(formData, "neighborhood"),
     city: getTextValue(formData, "city"),
     state: getTextValue(formData, "state"),
-    zip_code: getTextValue(formData, "zip_code"),
+    zip_code: formatZipCode(getTextValue(formData, "zip_code")),
     instagram: getTextValue(formData, "instagram"),
     email: getTextValue(formData, "email"),
     birth_date: getTextValue(formData, "birth_date"),
-    cpf: getTextValue(formData, "cpf"),
+    cpf: formatCpf(getTextValue(formData, "cpf")),
     rg: getTextValue(formData, "rg"),
-    phone: getTextValue(formData, "phone"),
+    phone: formatPhone(getTextValue(formData, "phone")),
     profession: getTextValue(formData, "profession"),
     class_name: getTextValue(formData, "class_name"),
     schedule: getTextValue(formData, "schedule"),
@@ -360,11 +383,11 @@ export function buildGuardianPayload(
     student_id: studentId,
     guardian_type: guardianType,
     full_name: fullName,
-    cpf: getTextValue(formData, `${prefix}_cpf`),
+    cpf: formatCpf(getTextValue(formData, `${prefix}_cpf`)),
     profession: getTextValue(formData, `${prefix}_profession`),
     company: getTextValue(formData, `${prefix}_company`),
-    phone: getTextValue(formData, `${prefix}_phone`),
-    work_phone: getTextValue(formData, `${prefix}_work_phone`),
+    phone: formatPhone(getTextValue(formData, `${prefix}_phone`)),
+    work_phone: formatPhone(getTextValue(formData, `${prefix}_work_phone`)),
     email: getTextValue(formData, `${prefix}_email`),
     instagram: getTextValue(formData, `${prefix}_instagram`),
   };
@@ -393,12 +416,12 @@ export function buildFinancialContactPayload(
     return {
       student_id: studentId,
       full_name: fullName,
-      cpf: getTextValue(formData, `${prefix}_cpf`),
+      cpf: formatCpf(getTextValue(formData, `${prefix}_cpf`)),
       address: null,
       profession: getTextValue(formData, `${prefix}_profession`),
       company: getTextValue(formData, `${prefix}_company`),
-      phone: getTextValue(formData, `${prefix}_phone`),
-      work_phone: getTextValue(formData, `${prefix}_work_phone`),
+      phone: formatPhone(getTextValue(formData, `${prefix}_phone`)),
+      work_phone: formatPhone(getTextValue(formData, `${prefix}_work_phone`)),
       email: getTextValue(formData, `${prefix}_email`),
       source_guardian_type: source,
     };
@@ -407,12 +430,12 @@ export function buildFinancialContactPayload(
   return {
     student_id: studentId,
     full_name: fullName,
-    cpf: getTextValue(formData, "financial_cpf"),
+    cpf: formatCpf(getTextValue(formData, "financial_cpf")),
     address: getTextValue(formData, "financial_address"),
     profession: getTextValue(formData, "financial_profession"),
     company: getTextValue(formData, "financial_company"),
-    phone: getTextValue(formData, "financial_phone"),
-    work_phone: getTextValue(formData, "financial_work_phone"),
+    phone: formatPhone(getTextValue(formData, "financial_phone")),
+    work_phone: formatPhone(getTextValue(formData, "financial_work_phone")),
     email: getTextValue(formData, "financial_email"),
     source_guardian_type: null,
   };
