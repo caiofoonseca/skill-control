@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { assertCanDelete, assertCanWrite } from "@/lib/users/action-guards";
 
 function getTextValue(formData: FormData, key: string) {
   const value = String(formData.get(key) ?? "").trim();
@@ -19,6 +20,7 @@ export async function createClassAction(formData: FormData) {
   }
 
   const supabase = await createSupabaseServerClient();
+  await assertCanWrite(supabase, "/classes");
   const { error } = await supabase.from("course_classes").insert({ name, teacher_id: teacherId });
 
   if (error) {
@@ -38,6 +40,7 @@ export async function updateClassAction(classId: string, currentName: string, fo
   }
 
   const supabase = await createSupabaseServerClient();
+  await assertCanWrite(supabase, "/classes");
   const teacherName = teacherId
     ? (await supabase.from("teachers").select("name").eq("id", teacherId).maybeSingle()).data?.name ?? null
     : null;
@@ -69,6 +72,7 @@ export async function updateClassAction(classId: string, currentName: string, fo
 
 export async function deleteClassAction(classId: string, className: string) {
   const supabase = await createSupabaseServerClient();
+  await assertCanDelete(supabase, "/classes");
 
   const { count } = await supabase
     .from("students")
@@ -87,6 +91,49 @@ export async function deleteClassAction(classId: string, className: string) {
 
   revalidateSharedPaths();
   redirect("/classes?deleted=Turma+excluída+com+sucesso");
+}
+
+export async function moveStudentToClassAction(studentId: string, formData: FormData) {
+  const classId = getTextValue(formData, "target_class_id");
+
+  if (!classId) {
+    redirect("/classes?error=Selecione+a+turma+de+destino");
+  }
+
+  const supabase = await createSupabaseServerClient();
+  await assertCanWrite(supabase, "/classes");
+  const { data: targetClass, error: classError } = await supabase
+    .from("course_classes")
+    .select("name, teacher_id")
+    .eq("id", classId)
+    .maybeSingle();
+
+  if (classError || !targetClass) {
+    redirect("/classes?error=Turma+de+destino+nao+encontrada");
+  }
+
+  const teacherName = targetClass.teacher_id
+    ? (await supabase
+        .from("teachers")
+        .select("name")
+        .eq("id", targetClass.teacher_id)
+        .maybeSingle()).data?.name ?? null
+    : null;
+
+  const { error } = await supabase
+    .from("students")
+    .update({
+      class_name: targetClass.name,
+      teacher_name: teacherName,
+    })
+    .eq("id", studentId);
+
+  if (error) {
+    redirect("/classes?error=Nao+foi+possivel+realocar+o+aluno");
+  }
+
+  revalidateSharedPaths();
+  redirect("/classes?updated=Aluno+realocado+com+sucesso");
 }
 
 function revalidateSharedPaths() {

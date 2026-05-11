@@ -7,6 +7,7 @@ function isMissingNewStudentColumn(error: { message?: string } | null) {
   return error?.message?.includes("is_active")
     || error?.message?.includes("language")
     || error?.message?.includes("is_scholarship")
+    || error?.message?.includes("scholarship_discount_percent")
     || false;
 }
 
@@ -28,7 +29,7 @@ export async function GET(request: Request) {
   let builder = supabase
     .from("students")
     .select(
-      "full_name, class_name, teacher_name, phone, email, city, state, created_at, is_active, is_scholarship, language",
+      "full_name, class_name, teacher_name, phone, email, city, state, created_at, is_active, is_scholarship, scholarship_discount_percent, language",
     )
     .order("created_at", { ascending: false });
 
@@ -76,6 +77,7 @@ export async function GET(request: Request) {
         ...student,
         is_active: true,
         is_scholarship: false,
+        scholarship_discount_percent: null,
         language: "Inglês",
       })) ?? null;
     error = fallbackResult.error;
@@ -101,6 +103,7 @@ export async function GET(request: Request) {
     { header: "UF", key: "state", width: 10 },
     { header: "Status", key: "status", width: 14 },
     { header: "Bolsista", key: "scholarship", width: 14 },
+    { header: "Desconto bolsista", key: "scholarship_discount_percent", width: 18 },
     { header: "Data de cadastro", key: "created_at", width: 18 },
   ];
 
@@ -125,6 +128,9 @@ export async function GET(request: Request) {
       state: student.state ?? "",
       status: student.is_active ? "Ativo" : "Inativo",
       scholarship: student.is_scholarship ? "Sim" : "Não",
+      scholarship_discount_percent: student.scholarship_discount_percent
+        ? `${student.scholarship_discount_percent}%`
+        : "",
       created_at: new Date(student.created_at).toLocaleDateString("pt-BR"),
     });
   }

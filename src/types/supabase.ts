@@ -80,6 +80,7 @@ export type Database = {
           source: string | null;
           is_active: boolean;
           is_scholarship: boolean;
+          scholarship_discount_percent: number | null;
           language: string;
         };
         Insert: {
@@ -109,6 +110,7 @@ export type Database = {
           source?: string | null;
           is_active?: boolean;
           is_scholarship?: boolean;
+          scholarship_discount_percent?: number | null;
           language?: string;
         };
         Update: {
@@ -135,6 +137,7 @@ export type Database = {
           source?: string | null;
           is_active?: boolean;
           is_scholarship?: boolean;
+          scholarship_discount_percent?: number | null;
           language?: string;
         };
       };
@@ -363,6 +366,39 @@ export type Database = {
           phone?: string | null;
           family_phone?: string | null;
           active?: boolean;
+        };
+      };
+      user_profiles: {
+        Row: {
+          id: string;
+          email: string;
+          full_name: string | null;
+          role: "master" | "secretary" | "viewer";
+          can_delete_records: boolean;
+          can_access_financial: boolean;
+          active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          email: string;
+          full_name?: string | null;
+          role?: "master" | "secretary" | "viewer";
+          can_delete_records?: boolean;
+          can_access_financial?: boolean;
+          active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          email?: string;
+          full_name?: string | null;
+          role?: "master" | "secretary" | "viewer";
+          can_delete_records?: boolean;
+          can_access_financial?: boolean;
+          active?: boolean;
+          updated_at?: string;
         };
       };
     };

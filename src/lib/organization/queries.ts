@@ -27,7 +27,9 @@ type ClassOptionRow = {
 
 type StudentClassUsageRow = {
   id: string;
+  full_name?: string;
   class_name: string | null;
+  teacher_name?: string | null;
 };
 
 type StudentTeacherUsageRow = {
@@ -116,7 +118,7 @@ export async function getClassManagementData() {
       .from("course_classes")
       .select("id, name, active, teacher_id, teachers(name)")
       .order("name", { ascending: true }),
-    supabase.from("students").select("id, class_name"),
+    supabase.from("students").select("id, full_name, class_name, teacher_name").order("full_name", { ascending: true }),
   ]);
 
   const classRows = (classes ?? []) as ClassOptionRow[];
@@ -132,6 +134,13 @@ export async function getClassManagementData() {
     ...item,
     teacherName: getTeacherName(item.teachers),
     studentCount: usageMap.get(item.name) ?? 0,
+    students: studentRows
+      .filter((student) => student.class_name === item.name)
+      .map((student) => ({
+        id: student.id,
+        fullName: student.full_name ?? "",
+        teacherName: student.teacher_name ?? null,
+      })),
   }));
 }
 

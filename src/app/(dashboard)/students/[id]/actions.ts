@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { assertCanDelete, assertCanWrite } from "@/lib/users/action-guards";
 
 function getTextValue(formData: FormData, key: string) {
   const value = String(formData.get(key) ?? "").trim();
@@ -25,6 +26,7 @@ export async function updatePaymentInstallmentAction(
   }
 
   const supabase = await createSupabaseServerClient();
+  await assertCanWrite(supabase, `/students/${studentId}`);
 
   const payload = {
     status,
@@ -56,6 +58,7 @@ export async function deletePaymentPlanAction(
   paymentPlanId: string,
 ) {
   const supabase = await createSupabaseServerClient();
+  await assertCanDelete(supabase, `/students/${studentId}`);
 
   const { error } = await supabase
     .from("student_payment_plans")
@@ -81,6 +84,7 @@ export async function deleteInstallmentAction(
   installmentId: string,
 ) {
   const supabase = await createSupabaseServerClient();
+  await assertCanDelete(supabase, `/students/${studentId}`);
 
   const { data: plan } = await supabase
     .from("student_payment_plans")

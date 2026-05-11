@@ -11,6 +11,7 @@ import {
   validateStudentForm,
 } from "@/lib/students/form-helpers";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { assertCanDelete, assertCanWrite } from "@/lib/users/action-guards";
 import type { Database } from "@/types/supabase";
 
 type GuardianInsert = Database["public"]["Tables"]["student_guardians"]["Insert"];
@@ -19,6 +20,7 @@ function isMissingStudentColumn(error: { message?: string } | null) {
   return error?.message?.includes("is_active")
     || error?.message?.includes("language")
     || error?.message?.includes("is_scholarship")
+    || error?.message?.includes("scholarship_discount_percent")
     || false;
 }
 
@@ -34,6 +36,7 @@ export async function updateStudentAction(studentId: string, formData: FormData)
   }
 
   const supabase = await createSupabaseServerClient();
+  await assertCanWrite(supabase, `/students/${studentId}/edit`);
 
   const studentPayload = buildStudentPayload(
     formData,
@@ -49,6 +52,7 @@ export async function updateStudentAction(studentId: string, formData: FormData)
     delete compatibleStudentPayload.is_active;
     delete compatibleStudentPayload.language;
     delete compatibleStudentPayload.is_scholarship;
+    delete compatibleStudentPayload.scholarship_discount_percent;
 
     updateResult = await supabase
       .from("students")
@@ -121,6 +125,7 @@ export async function updateStudentAction(studentId: string, formData: FormData)
 
 export async function deleteStudentAction(studentId: string) {
   const supabase = await createSupabaseServerClient();
+  await assertCanDelete(supabase, `/students/${studentId}/delete`);
 
   const { error } = await supabase.from("students").delete().eq("id", studentId);
 

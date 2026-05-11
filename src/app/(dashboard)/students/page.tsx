@@ -21,6 +21,7 @@ function isMissingNewStudentColumn(error: { message?: string } | null) {
   return error?.message?.includes("is_active")
     || error?.message?.includes("language")
     || error?.message?.includes("is_scholarship")
+    || error?.message?.includes("scholarship_discount_percent")
     || false;
 }
 
@@ -56,7 +57,7 @@ export default async function StudentsPage({ searchParams }: PageProps) {
   let studentsQuery = supabase
     .from("students")
     .select(
-      "id, full_name, class_name, teacher_name, phone, email, created_at, is_active, is_scholarship, language",
+      "id, full_name, class_name, teacher_name, phone, email, created_at, is_active, is_scholarship, scholarship_discount_percent, language",
       { count: "exact" },
     )
     .order("created_at", { ascending: false })
@@ -110,6 +111,7 @@ export default async function StudentsPage({ searchParams }: PageProps) {
         ...student,
         is_active: true,
         is_scholarship: false,
+        scholarship_discount_percent: null,
         language: "Inglês",
       })) ?? null;
     error = fallbackResult.error;
@@ -403,7 +405,7 @@ export default async function StudentsPage({ searchParams }: PageProps) {
                           </span>
                           {student.is_scholarship ? (
                             <span className="rounded-full bg-[rgba(254,249,195,0.9)] px-2 py-0.5 text-xs font-semibold text-[rgb(133,77,14)]">
-                              Bolsista
+                              Bolsista{student.scholarship_discount_percent ? ` ${student.scholarship_discount_percent}%` : ""}
                             </span>
                           ) : null}
                         </div>
@@ -419,7 +421,7 @@ export default async function StudentsPage({ searchParams }: PageProps) {
                         <div className="mt-1 text-[var(--muted-foreground)]">
                           {student.email ?? "-"}
                         </div>
-                        <div className="mt-3 flex gap-3">
+                        <div className="mt-3 flex items-center gap-2">
                           <Link
                             href={`/students/${student.id}`}
                             className="text-sm font-semibold text-[var(--accent)]"
@@ -434,7 +436,7 @@ export default async function StudentsPage({ searchParams }: PageProps) {
                           </Link>
                           <Link
                             href={`/students/${student.id}/edit`}
-                            className="text-sm font-semibold text-[var(--foreground)]"
+                            className="-ml-3 rounded-lg bg-[rgb(153,27,27)] px-2.5 py-1.5 text-sm font-semibold text-white"
                           >
                             Editar
                           </Link>

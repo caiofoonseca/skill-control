@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { getDefaultPaymentTitle, isCreditCardMethod, PAYMENT_TYPE_OPTIONS } from "@/lib/payments/constants";
 import { normalizeMoney } from "@/lib/payments/money";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { assertCanWrite } from "@/lib/users/action-guards";
 import type { Database } from "@/types/supabase";
 
 function getTextValue(formData: FormData, key: string) {
@@ -34,6 +35,7 @@ export async function createPaymentPlanAction(studentId: string, formData: FormD
   const title = getTextValue(formData, "title") ?? getDefaultPaymentTitle(effectivePaymentType);
 
   const supabase = await createSupabaseServerClient();
+  await assertCanWrite(supabase, `/students/${studentId}/payments/new`);
 
   const planPayload: Database["public"]["Tables"]["student_payment_plans"]["Insert"] = {
     student_id: studentId,

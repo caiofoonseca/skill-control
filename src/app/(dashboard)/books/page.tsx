@@ -1,5 +1,7 @@
 import { createBookAction, deleteBookAction, updateBookAction } from "./actions";
 import { getBookManagementData } from "@/lib/organization/queries";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getCurrentUserAccess } from "@/lib/users/permissions";
 
 type PageProps = {
   searchParams: Promise<{
@@ -13,7 +15,11 @@ type PageProps = {
 
 export default async function BooksPage({ searchParams }: PageProps) {
   const params = await searchParams;
-  const books = await getBookManagementData();
+  const supabase = await createSupabaseServerClient();
+  const [books, access] = await Promise.all([
+    getBookManagementData(),
+    getCurrentUserAccess(supabase),
+  ]);
   const editingId = params.editing ?? null;
 
   return (
@@ -42,7 +48,8 @@ export default async function BooksPage({ searchParams }: PageProps) {
         </div>
       ) : null}
 
-      <div className="grid items-start gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+      <div className={`grid items-start gap-6 ${access.canWrite ? "xl:grid-cols-[0.9fr_1.1fr]" : ""}`}>
+        {access.canWrite ? (
         <div className="rounded-[28px] border border-[var(--border)] bg-white p-7 shadow-sm">
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--accent)]">
             Novo livro
@@ -65,6 +72,7 @@ export default async function BooksPage({ searchParams }: PageProps) {
             </button>
           </form>
         </div>
+        ) : null}
 
         <div className="rounded-[28px] border border-[var(--border)] bg-white p-7 shadow-sm">
           <div className="flex items-center justify-between gap-4">
@@ -102,7 +110,7 @@ export default async function BooksPage({ searchParams }: PageProps) {
                         </p>
                       </div>
 
-                      {isEditing ? (
+                      {access.canWrite && isEditing ? (
                         <div className="flex flex-col gap-3">
                           <form
                             action={updateBookAction.bind(null, book.id, book.name)}
@@ -129,7 +137,7 @@ export default async function BooksPage({ searchParams }: PageProps) {
                             Cancelar
                           </a>
                         </div>
-                      ) : (
+                      ) : access.canWrite ? (
                         <div className="flex flex-col gap-3 sm:flex-row">
                           <a
                             href={`/books?editing=${book.id}#book-${book.id}`}
@@ -138,6 +146,7 @@ export default async function BooksPage({ searchParams }: PageProps) {
                             Editar
                           </a>
 
+                          {access.canDelete ? (
                           <form action={deleteBookAction.bind(null, book.id, book.name)}>
                             <button
                               type="submit"
@@ -146,8 +155,9 @@ export default async function BooksPage({ searchParams }: PageProps) {
                               Excluir
                             </button>
                           </form>
+                          ) : null}
                         </div>
-                      )}
+                      ) : null}
                     </div>
                   </div>
                 );

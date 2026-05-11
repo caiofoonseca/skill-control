@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { normalizeMoney } from "@/lib/payments/money";
 import { getDefaultPaymentTitle, isCreditCardMethod, PAYMENT_TYPE_OPTIONS } from "@/lib/payments/constants";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { assertCanWrite } from "@/lib/users/action-guards";
 import type { Database } from "@/types/supabase";
 import {
   buildFinancialContactPayload,
@@ -21,6 +22,7 @@ function isMissingNewStudentColumn(error: { message?: string } | null) {
   return error?.message?.includes("is_active")
     || error?.message?.includes("language")
     || error?.message?.includes("is_scholarship")
+    || error?.message?.includes("scholarship_discount_percent")
     || false;
 }
 
@@ -40,6 +42,7 @@ export async function createStudentAction(formData: FormData) {
   }
 
   const supabase = await createSupabaseServerClient();
+  await assertCanWrite(supabase, "/students/new");
 
   const studentPayload = buildStudentPayload(
     formData,
@@ -56,6 +59,7 @@ export async function createStudentAction(formData: FormData) {
     delete compatibleStudentPayload.is_active;
     delete compatibleStudentPayload.language;
     delete compatibleStudentPayload.is_scholarship;
+    delete compatibleStudentPayload.scholarship_discount_percent;
 
     createResult = await supabase
       .from("students")

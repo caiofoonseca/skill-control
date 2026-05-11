@@ -1,5 +1,6 @@
 ﻿import { createClassAction, deleteClassAction, updateClassAction } from "./actions";
 import { getClassManagementData, getStudentOptions } from "@/lib/organization/queries";
+import { moveStudentToClassAction } from "./actions";
 
 type PageProps = {
   searchParams: Promise<{
@@ -8,6 +9,7 @@ type PageProps = {
     updated?: string;
     error?: string;
     editing?: string;
+    viewing?: string;
   }>;
 };
 
@@ -18,6 +20,7 @@ export default async function ClassesPage({ searchParams }: PageProps) {
     getStudentOptions(),
   ]);
   const editingId = params.editing ?? null;
+  const viewingId = params.viewing ?? null;
 
   return (
     <section className="space-y-6">
@@ -116,6 +119,7 @@ export default async function ClassesPage({ searchParams }: PageProps) {
             {classes.length > 0 ? (
               classes.map((item) => {
                 const isEditing = editingId === item.id;
+                const isViewingStudents = viewingId === item.id;
 
                 return (
                   <div
@@ -178,10 +182,21 @@ export default async function ClassesPage({ searchParams }: PageProps) {
                       ) : (
                         <div className="flex flex-col gap-3 sm:flex-row">
                           <a
-                            href={`/classes?editing=${item.id}#class-${item.id}`}
-                            className="rounded-xl border border-[var(--border)] bg-white px-4 py-2 text-center text-sm font-semibold text-[var(--foreground)] transition hover:bg-white"
+                            href={
+                              isViewingStudents
+                                ? `/classes#class-${item.id}`
+                                : `/classes?viewing=${item.id}#class-${item.id}`
+                            }
+                            className="rounded-xl border border-[var(--border)] bg-white px-4 py-2 text-center text-sm font-semibold text-[var(--foreground)] transition hover:bg-[var(--background)]"
                           >
-                            Editar
+                            {isViewingStudents ? "Ocultar alunos" : "Visualizar alunos"}
+                          </a>
+
+                          <a
+                            href={`/classes?editing=${item.id}#class-${item.id}`}
+                            className="rounded-xl bg-[rgb(153,27,27)] px-4 py-2 text-center text-sm font-semibold text-white transition hover:opacity-95"
+                          >
+                            Editar turma
                           </a>
 
                           <form action={deleteClassAction.bind(null, item.id, item.name)}>
@@ -195,6 +210,68 @@ export default async function ClassesPage({ searchParams }: PageProps) {
                         </div>
                       )}
                     </div>
+                    {isViewingStudents ? (
+                    <div className="mt-4 rounded-[18px] border border-[var(--border)] bg-white px-4 py-4">
+                      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                        <p className="text-sm font-semibold text-[var(--foreground)]">
+                          Alunos da turma
+                        </p>
+                        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[var(--muted-foreground)]">
+                          Visualizar e realocar
+                        </p>
+                      </div>
+
+                      {item.students.length > 0 ? (
+                        <div className="mt-3 space-y-2">
+                          {item.students.map((student) => (
+                            <div
+                              key={student.id}
+                              className="grid gap-3 rounded-[14px] border border-[var(--border)] bg-[var(--panel)] px-3 py-3 lg:grid-cols-[minmax(0,1fr)_minmax(240px,0.9fr)] lg:items-center"
+                            >
+                              <div>
+                                <a
+                                  href={`/students/${student.id}`}
+                                  className="text-sm font-semibold text-[var(--foreground)]"
+                                >
+                                  {student.fullName}
+                                </a>
+                                <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+                                  Professor atual: {student.teacherName || "Não definido"}
+                                </p>
+                              </div>
+
+                              <form
+                                action={moveStudentToClassAction.bind(null, student.id)}
+                                className="flex flex-col gap-2 sm:flex-row"
+                              >
+                                <select
+                                  name="target_class_id"
+                                  defaultValue={item.id}
+                                  className="min-w-0 flex-1 rounded-xl border border-[var(--border)] bg-white px-3 py-2 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--accent)]"
+                                >
+                                  {classes.map((classOption) => (
+                                    <option key={classOption.id} value={classOption.id}>
+                                      {classOption.name}
+                                    </option>
+                                  ))}
+                                </select>
+                                <button
+                                  type="submit"
+                                  className="rounded-xl border border-[var(--border)] bg-white px-3 py-2 text-sm font-semibold text-[var(--foreground)] transition hover:bg-[var(--background)]"
+                                >
+                                  Realocar
+                                </button>
+                              </form>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="mt-3 rounded-[14px] border border-dashed border-[var(--border)] bg-[var(--panel)] px-4 py-4 text-sm text-[var(--muted-foreground)]">
+                          Nenhum aluno vinculado a esta turma.
+                        </p>
+                      )}
+                    </div>
+                    ) : null}
                   </div>
                 );
               })

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { assertCanDelete, assertCanWrite } from "@/lib/users/action-guards";
 
 function getTextValue(formData: FormData, key: string) {
   const value = String(formData.get(key) ?? "").trim();
@@ -41,6 +42,7 @@ export async function createTeacherAction(formData: FormData) {
   }
 
   const supabase = await createSupabaseServerClient();
+  await assertCanWrite(supabase, "/teachers");
   let createResult = await supabase.from("teachers").insert(payload);
 
   if (isMissingTeacherColumn(createResult.error)) {
@@ -64,6 +66,7 @@ export async function updateTeacherAction(teacherId: string, currentName: string
   }
 
   const supabase = await createSupabaseServerClient();
+  await assertCanWrite(supabase, "/teachers");
 
   let updateResult = await supabase
     .from("teachers")
@@ -98,6 +101,7 @@ export async function updateTeacherAction(teacherId: string, currentName: string
 
 export async function deleteTeacherAction(teacherId: string, teacherName: string) {
   const supabase = await createSupabaseServerClient();
+  await assertCanDelete(supabase, "/teachers");
 
   const [{ count: studentCount }, { count: classCount }] = await Promise.all([
     supabase

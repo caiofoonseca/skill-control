@@ -226,6 +226,17 @@ function validateStudentLanguage(formData: FormData, key: string) {
   return null;
 }
 
+function getScholarshipDiscountPercent(formData: FormData) {
+  const value = getTextValue(formData, "scholarship_discount_percent");
+  if (!value) return null;
+
+  const normalizedValue = value.replace(",", ".");
+  const parsedValue = Number(normalizedValue);
+
+  if (!Number.isFinite(parsedValue)) return null;
+  return parsedValue;
+}
+
 export function validateStudentFormFields(formData: FormData) {
   const errors: Record<string, string> = {};
   const fullName = getTextValue(formData, "full_name");
@@ -304,6 +315,17 @@ export function validateStudentFormFields(formData: FormData) {
   }
 
   const financialContactSource = getFinancialContactSource(formData);
+  const scholarshipDiscountPercent = getScholarshipDiscountPercent(formData);
+
+  if (scholarshipDiscountPercent !== null && (
+    scholarshipDiscountPercent < 0 || scholarshipDiscountPercent > 100
+  )) {
+    errors.scholarship_discount_percent = "Informe um desconto entre 0% e 100%.";
+  }
+
+  if (formData.get("is_scholarship") !== "on" && scholarshipDiscountPercent !== null) {
+    errors.scholarship_discount_percent = "Marque aluno bolsista para informar o percentual.";
+  }
 
   if (financialContactSource === "manual") {
     if (!getTextValue(formData, "financial_full_name") && (
@@ -363,6 +385,10 @@ export function buildStudentPayload(
     payment_notes: getTextValue(formData, "payment_notes"),
     is_active: formData.get("is_active") === "on",
     is_scholarship: formData.get("is_scholarship") === "on",
+    scholarship_discount_percent:
+      formData.get("is_scholarship") === "on"
+        ? getScholarshipDiscountPercent(formData)
+        : null,
     language: getTextValue(formData, "language") ?? "Inglês",
   };
 }

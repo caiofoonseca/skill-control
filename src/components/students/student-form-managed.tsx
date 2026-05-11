@@ -9,13 +9,13 @@ import { validateStudentFormFields } from "@/lib/students/form-helpers";
 
 const studentPersonalFields = [
   { name: "full_name", label: "Nome", required: true, pattern: "[A-Za-zÀ-ÖØ-öø-ÿ' ]+" },
-  { name: "rg", label: "RG" },
   { name: "birth_date", label: "Data de nascimento", type: "date" },
+  { name: "rg", label: "RG" },
   { name: "email", label: "E-mail", type: "email" },
   { name: "phone", label: "Celular", inputMode: "tel", pattern: "[0-9()\\-+ ]{8,16}", format: "phone" },
-  { name: "cpf", label: "CPF", inputMode: "numeric", pattern: "[0-9.\\- ]{11,14}", format: "cpf" },
   { name: "instagram", label: "Instagram" },
   { name: "profession", label: "Profissão" },
+  { name: "cpf", label: "CPF", inputMode: "numeric", pattern: "[0-9.\\- ]{11,14}", format: "cpf" },
 ] as const;
 
 const studentAddressFields = [
@@ -280,6 +280,7 @@ export function StudentFormManaged({
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [isDirty, setIsDirty] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isScholarship, setIsScholarship] = useState(values?.is_scholarship === "true");
   const [showUnsavedModal, setShowUnsavedModal] = useState(false);
   const [financialPreview, setFinancialPreview] = useState<GuardianPreview | null>(() =>
     getGuardianPreviewFromValues(
@@ -302,18 +303,6 @@ export function StudentFormManaged({
 
     return bookOptions;
   }, [bookOptions, values?.current_book]);
-
-  useEffect(() => {
-    if (!isDirty || isSubmitting) return;
-
-    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      event.preventDefault();
-      event.returnValue = "";
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [isDirty, isSubmitting]);
 
   useEffect(() => {
     if (!isDirty || isSubmitting) return;
@@ -486,13 +475,53 @@ export function StudentFormManaged({
                 <input
                   name="is_scholarship"
                   type="checkbox"
-                  defaultChecked={values?.is_scholarship === "true"}
+                  checked={isScholarship}
+                  onChange={(event) => {
+                    const nextIsScholarship = event.currentTarget.checked;
+                    setIsScholarship(nextIsScholarship);
+                    setIsDirty(true);
+
+                    if (!nextIsScholarship && event.currentTarget.form) {
+                      const discountField = event.currentTarget.form.elements.namedItem(
+                        "scholarship_discount_percent",
+                      );
+
+                      if (discountField instanceof HTMLInputElement) {
+                        discountField.value = "";
+                      }
+                    }
+                  }}
                   className="h-4 w-4 rounded border-[var(--border)] accent-[var(--primary)]"
                 />
                 Aluno bolsista
               </label>
+              <label className="flex min-w-[160px] items-center gap-2 text-sm font-semibold text-[var(--foreground)]">
+                Desconto
+                <input
+                  name="scholarship_discount_percent"
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.01"
+                  defaultValue={values?.scholarship_discount_percent ?? ""}
+                  disabled={!isScholarship}
+                  aria-invalid={Boolean(fieldErrors.scholarship_discount_percent)}
+                  aria-describedby={
+                    fieldErrors.scholarship_discount_percent
+                      ? "scholarship-discount-percent-error"
+                      : undefined
+                  }
+                  className="w-20 rounded-lg border border-[var(--border)] bg-white px-2 py-1.5 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--accent)] disabled:cursor-not-allowed disabled:bg-[var(--panel)] disabled:text-[var(--muted-foreground)]"
+                />
+                <span>%</span>
+              </label>
             </div>
           </div>
+          {fieldErrors.scholarship_discount_percent ? (
+            <span id="scholarship-discount-percent-error" className="mt-2 block text-xs font-semibold text-[rgb(185,28,28)]">
+              {fieldErrors.scholarship_discount_percent}
+            </span>
+          ) : null}
           <div className="mt-4">
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--muted-foreground)]">
               Dados pessoais
@@ -505,71 +534,70 @@ export function StudentFormManaged({
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--muted-foreground)]">
               Endereço
             </p>
+            <div className="mt-3 grid gap-3 md:grid-cols-[minmax(0,1fr)_160px]">
+              <label className="block text-sm font-medium text-[var(--foreground)]">
+                Cidade
+                <input
+                  name="city"
+                  defaultValue={values?.city ?? ""}
+                  className={fieldClassName(Boolean(fieldErrors.city))}
+                  aria-invalid={Boolean(fieldErrors.city)}
+                  aria-describedby={fieldErrors.city ? "city-error" : undefined}
+                />
+                {fieldErrors.city ? (
+                  <span id="city-error" className="mt-1 block text-xs font-semibold text-[rgb(185,28,28)]">
+                    {fieldErrors.city}
+                  </span>
+                ) : null}
+              </label>
+
+              <label className="block text-sm font-medium text-[var(--foreground)]">
+                UF
+                <select
+                  name="state"
+                  defaultValue={values?.state ?? ""}
+                  className={fieldClassName(Boolean(fieldErrors.state))}
+                  aria-invalid={Boolean(fieldErrors.state)}
+                  aria-describedby={fieldErrors.state ? "state-error" : undefined}
+                >
+                  <option value="">Selecione</option>
+                  {BRAZIL_STATE_OPTIONS.map((state) => (
+                    <option key={state.value} value={state.value}>
+                      {state.value} - {state.label}
+                    </option>
+                  ))}
+                </select>
+                {fieldErrors.state ? (
+                  <span id="state-error" className="mt-1 block text-xs font-semibold text-[rgb(185,28,28)]">
+                    {fieldErrors.state}
+                  </span>
+                ) : null}
+              </label>
+            </div>
             <div className="mt-3">
               <FieldGrid fields={studentAddressFields} values={values} errors={fieldErrors} />
             </div>
-          </div>
-          <div className="mt-3 grid gap-3 md:grid-cols-[minmax(0,1fr)_160px_minmax(0,1fr)]">
-            <label className="block text-sm font-medium text-[var(--foreground)]">
-              Cidade
-              <input
-                name="city"
-                defaultValue={values?.city ?? ""}
-                className={fieldClassName(Boolean(fieldErrors.city))}
-                aria-invalid={Boolean(fieldErrors.city)}
-                aria-describedby={fieldErrors.city ? "city-error" : undefined}
-              />
-              {fieldErrors.city ? (
-                <span id="city-error" className="mt-1 block text-xs font-semibold text-[rgb(185,28,28)]">
-                  {fieldErrors.city}
-                </span>
-              ) : null}
-            </label>
-
-            <label className="block text-sm font-medium text-[var(--foreground)]">
-              UF
-              <select
-                name="state"
-                defaultValue={values?.state ?? ""}
-                className={fieldClassName(Boolean(fieldErrors.state))}
-                aria-invalid={Boolean(fieldErrors.state)}
-                aria-describedby={fieldErrors.state ? "state-error" : undefined}
-              >
-                <option value="">Selecione</option>
-                {BRAZIL_STATE_OPTIONS.map((state) => (
-                  <option key={state.value} value={state.value}>
-                    {state.value} - {state.label}
-                  </option>
-                ))}
-              </select>
-              {fieldErrors.state ? (
-                <span id="state-error" className="mt-1 block text-xs font-semibold text-[rgb(185,28,28)]">
-                  {fieldErrors.state}
-                </span>
-              ) : null}
-            </label>
-
-            <label className="block text-sm font-medium text-[var(--foreground)]">
-              CEP
-              <input
-                name="zip_code"
-                defaultValue={values?.zip_code ?? ""}
-                inputMode="numeric"
-                pattern="[0-9.\- ]{8,10}"
-                data-format="zip"
-                onBlur={(event) => {
-                  event.currentTarget.value = formatZipCode(event.currentTarget.value);
-                }}
-                className={fieldClassName(Boolean(fieldErrors.zip_code))}
-                aria-invalid={Boolean(fieldErrors.zip_code)}
-                aria-describedby={fieldErrors.zip_code ? "zip-code-error" : undefined}
-              />
-              {fieldErrors.zip_code ? (
-                <span id="zip-code-error" className="mt-1 block text-xs font-semibold text-[rgb(185,28,28)]">
-                  {fieldErrors.zip_code}
-                </span>
-              ) : null}
-            </label>
+            <label className="mt-3 block text-sm font-medium text-[var(--foreground)] md:max-w-xs">
+                CEP
+                <input
+                  name="zip_code"
+                  defaultValue={values?.zip_code ?? ""}
+                  inputMode="numeric"
+                  pattern="[0-9.\- ]{8,10}"
+                  data-format="zip"
+                  onBlur={(event) => {
+                    event.currentTarget.value = formatZipCode(event.currentTarget.value);
+                  }}
+                  className={fieldClassName(Boolean(fieldErrors.zip_code))}
+                  aria-invalid={Boolean(fieldErrors.zip_code)}
+                  aria-describedby={fieldErrors.zip_code ? "zip-code-error" : undefined}
+                />
+                {fieldErrors.zip_code ? (
+                  <span id="zip-code-error" className="mt-1 block text-xs font-semibold text-[rgb(185,28,28)]">
+                    {fieldErrors.zip_code}
+                  </span>
+                ) : null}
+              </label>
           </div>
           <div className="mt-5">
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--muted-foreground)]">

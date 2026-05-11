@@ -57,6 +57,11 @@ export default async function EditStudentPage({
     payment_notes: student.payment_notes,
     is_active: student.is_active ? "true" : "false",
     is_scholarship: student.is_scholarship ? "true" : "false",
+    scholarship_discount_percent:
+      student.scholarship_discount_percent === null ||
+      student.scholarship_discount_percent === undefined
+        ? ""
+        : String(student.scholarship_discount_percent),
     guardian1_full_name: primaryGuardian?.full_name,
     guardian1_cpf: primaryGuardian?.cpf,
     guardian1_profession: primaryGuardian?.profession,

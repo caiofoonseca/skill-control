@@ -304,7 +304,7 @@ export default async function StudentDetailsPage({
           </h2>
           {student.is_scholarship ? (
             <p className="mt-3 inline-flex rounded-full bg-[rgba(254,249,195,0.9)] px-3 py-1 text-sm font-semibold text-[rgb(133,77,14)]">
-              Aluno bolsista
+              Aluno bolsista{student.scholarship_discount_percent ? ` - ${student.scholarship_discount_percent}%` : ""}
             </p>
           ) : null}
           <p className="mt-4 max-w-2xl text-base leading-7 text-[var(--muted-foreground)]">
@@ -321,7 +321,7 @@ export default async function StudentDetailsPage({
           </Link>
           <Link
             href={`/students/${student.id}/edit`}
-            className="rounded-xl border border-[var(--border)] bg-white px-4 py-2.5 text-sm font-semibold text-[var(--foreground)] transition hover:bg-[var(--panel)]"
+            className="rounded-xl bg-[rgb(153,27,27)] px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-95"
           >
             Editar
           </Link>
@@ -350,6 +350,12 @@ export default async function StudentDetailsPage({
               { label: "Nome", value: student.full_name },
               { label: "Status", value: student.is_active ? "Ativo" : "Inativo" },
               { label: "Bolsista", value: student.is_scholarship ? "Sim" : "Não" },
+              {
+                label: "Desconto bolsista",
+                value: student.scholarship_discount_percent
+                  ? `${student.scholarship_discount_percent}%`
+                  : null,
+              },
               { label: "Idioma", value: student.language ?? "Inglês" },
               { label: "Endereço", value: student.address },
               { label: "Número", value: student.address_number },

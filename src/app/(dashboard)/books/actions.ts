@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { assertCanDelete, assertCanWrite } from "@/lib/users/action-guards";
 
 function getTextValue(formData: FormData, key: string) {
   const value = String(formData.get(key) ?? "").trim();
@@ -26,6 +27,7 @@ export async function createBookAction(formData: FormData) {
 
   const name = normalizeBookName(rawName);
   const supabase = await createSupabaseServerClient();
+  await assertCanWrite(supabase, "/books");
   const { error } = await supabase.from("books").insert({ name });
 
   if (error) {
@@ -45,6 +47,7 @@ export async function updateBookAction(bookId: string, currentName: string, form
 
   const name = normalizeBookName(rawName);
   const supabase = await createSupabaseServerClient();
+  await assertCanWrite(supabase, "/books");
 
   const { error: bookError } = await supabase
     .from("books")
@@ -70,6 +73,7 @@ export async function updateBookAction(bookId: string, currentName: string, form
 
 export async function deleteBookAction(bookId: string, bookName: string) {
   const supabase = await createSupabaseServerClient();
+  await assertCanDelete(supabase, "/books");
 
   const { count } = await supabase
     .from("students")
