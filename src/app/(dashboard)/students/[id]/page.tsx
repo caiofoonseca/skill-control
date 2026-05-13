@@ -22,15 +22,17 @@ type PageProps = {
 
 function DetailGrid({
   items,
+  className = "grid gap-4 md:grid-cols-2 xl:grid-cols-3",
 }: {
-  items: Array<{ label: string; value: string | null | undefined }>;
+  items: Array<{ label: string; value: string | null | undefined; className?: string }>;
+  className?: string;
 }) {
   return (
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+    <div className={className}>
       {items.map((item) => (
         <div
           key={item.label}
-          className="rounded-[22px] border border-[var(--border)] bg-[var(--panel)] p-4"
+          className={`rounded-[22px] border border-[var(--border)] bg-[var(--panel)] p-4 ${item.className ?? ""}`}
         >
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted-foreground)]">
             {item.label}
@@ -344,39 +346,72 @@ export default async function StudentDetailsPage({
         <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--accent)]">
           Aluno
         </p>
-        <div className="mt-5">
-          <DetailGrid
-            items={[
-              { label: "Nome", value: student.full_name },
-              { label: "Status", value: student.is_active ? "Ativo" : "Inativo" },
-              { label: "Bolsista", value: student.is_scholarship ? "Sim" : "Não" },
-              {
-                label: "Desconto bolsista",
-                value: student.scholarship_discount_percent
-                  ? `${student.scholarship_discount_percent}%`
-                  : null,
-              },
-              { label: "Idioma", value: student.language ?? "Inglês" },
-              { label: "Endereço", value: student.address },
-              { label: "Número", value: student.address_number },
-              { label: "Apto", value: student.apartment },
-              { label: "Bairro", value: student.neighborhood },
-              { label: "Cidade", value: student.city },
-              { label: "UF", value: student.state },
-              { label: "CEP", value: student.zip_code },
-              { label: "Instagram", value: student.instagram },
-              { label: "E-mail", value: student.email },
-              { label: "Nascimento", value: formatDate(student.birth_date) },
-              { label: "CPF", value: student.cpf },
-              { label: "RG", value: student.rg },
-              { label: "Celular", value: student.phone },
-              { label: "Profissão", value: student.profession },
-              { label: "Turma/Horário", value: student.class_name },
-              { label: "Professor", value: student.teacher_name },
-              { label: "Livro atual", value: student.current_book },
-              { label: "Origem", value: student.source },
-            ]}
-          />
+        <div className="mt-5 space-y-6">
+          <section>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted-foreground)]">
+              Dados pessoais
+            </p>
+            <div className="mt-3">
+              <DetailGrid
+                className="grid gap-4 md:grid-cols-2 xl:grid-cols-12"
+                items={[
+                  { label: "Nome", value: student.full_name, className: "xl:col-span-4" },
+                  { label: "Nascimento", value: formatDate(student.birth_date), className: "xl:col-span-3" },
+                  { label: "RG", value: student.rg, className: "xl:col-span-2" },
+                  { label: "CPF", value: student.cpf, className: "xl:col-span-3" },
+                  { label: "Celular", value: student.phone, className: "xl:col-span-3" },
+                  { label: "E-mail", value: student.email, className: "md:col-span-2 xl:col-span-4" },
+                  { label: "Profissão", value: student.profession, className: "xl:col-span-3" },
+                  { label: "Instagram", value: student.instagram, className: "xl:col-span-2" },
+                ]}
+              />
+            </div>
+          </section>
+
+          <section>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted-foreground)]">
+              Endereço
+            </p>
+            <div className="mt-3">
+              <DetailGrid
+                className="grid gap-4 md:grid-cols-2 xl:grid-cols-12"
+                items={[
+                  { label: "CEP", value: student.zip_code, className: "xl:col-span-2" },
+                  { label: "Endereço", value: student.address, className: "md:col-span-2 xl:col-span-8" },
+                  { label: "Número", value: student.address_number, className: "xl:col-span-2" },
+                  { label: "Complemento", value: student.apartment, className: "xl:col-span-3" },
+                  { label: "Bairro", value: student.neighborhood, className: "xl:col-span-3" },
+                  { label: "Cidade", value: student.city, className: "xl:col-span-4" },
+                  { label: "UF", value: student.state, className: "xl:col-span-2" },
+                ]}
+              />
+            </div>
+          </section>
+
+          <section>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted-foreground)]">
+              Curso
+            </p>
+            <div className="mt-3">
+              <DetailGrid
+                items={[
+                  { label: "Status", value: student.is_active ? "Ativo" : "Inativo" },
+                  { label: "Bolsista", value: student.is_scholarship ? "Sim" : "Não" },
+                  {
+                    label: "Desconto bolsista",
+                    value: student.scholarship_discount_percent
+                      ? `${student.scholarship_discount_percent}%`
+                      : null,
+                  },
+                  { label: "Idioma", value: student.language ?? "Inglês" },
+                  { label: "Turma/Horário", value: student.class_name },
+                  { label: "Professor", value: student.teacher_name },
+                  { label: "Livro atual", value: student.current_book },
+                  { label: "Origem", value: student.source },
+                ]}
+              />
+            </div>
+          </section>
         </div>
         <div className="mt-6 rounded-[24px] border border-[var(--border)] bg-[var(--panel)] p-5">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted-foreground)]">

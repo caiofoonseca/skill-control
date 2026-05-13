@@ -10,6 +10,76 @@ function formatBirthday(date: string) {
   });
 }
 
+function ExportOptionsPanel({
+  eyebrow,
+  title,
+  description,
+  options,
+  queryParam,
+  emptyMessage,
+}: {
+  eyebrow: string;
+  title: string;
+  description: string;
+  options: Array<{ id: string; name: string }>;
+  queryParam: "class" | "teacher";
+  emptyMessage: string;
+}) {
+  return (
+    <details className="group rounded-[28px] border border-[var(--border)] bg-white shadow-sm">
+      <summary className="flex cursor-pointer list-none flex-col gap-5 p-7 marker:hidden lg:flex-row lg:items-center lg:justify-between [&::-webkit-details-marker]:hidden">
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--accent)]">
+            {eyebrow}
+          </p>
+          <h3 className="mt-3 text-2xl font-semibold text-[var(--foreground)]">
+            {title}
+          </h3>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--muted-foreground)]">
+            {description}
+          </p>
+        </div>
+
+        <div className="flex shrink-0 items-center gap-3">
+          <span className="rounded-full border border-[var(--border)] bg-[var(--panel)] px-4 py-2 text-sm font-semibold text-[var(--foreground)]">
+            {options.length} opções
+          </span>
+          <span className="rounded-xl bg-[var(--primary)] px-5 py-3 text-sm font-semibold text-white transition group-open:hidden">
+            Ver opções
+          </span>
+          <span className="hidden rounded-xl border border-[var(--border)] bg-[var(--panel)] px-5 py-3 text-sm font-semibold text-[var(--foreground)] group-open:inline">
+            Recolher
+          </span>
+        </div>
+      </summary>
+
+      <div className="border-t border-[var(--border)] px-7 pb-7 pt-5">
+        {options.length > 0 ? (
+          <div className="max-h-72 overflow-y-auto pr-2">
+            <div className="grid gap-3 md:grid-cols-2">
+              {options.map((option) => (
+                <Link
+                  key={option.id}
+                  href={`/api/students/export?${queryParam}=${encodeURIComponent(option.name)}`}
+                  className="rounded-2xl border border-[var(--border)] bg-[var(--panel)] px-4 py-3 text-sm font-semibold text-[var(--foreground)] transition hover:bg-white"
+                >
+                  {option.name}
+                </Link>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="rounded-[24px] border border-dashed border-[var(--border)] bg-[var(--panel)] px-6 py-8 text-center">
+            <p className="text-sm text-[var(--muted-foreground)]">
+              {emptyMessage}
+            </p>
+          </div>
+        )}
+      </div>
+    </details>
+  );
+}
+
 export default async function ReportsPage() {
   const supabase = await createSupabaseServerClient();
 
@@ -102,66 +172,24 @@ export default async function ReportsPage() {
         </div>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-2">
-        <div className="rounded-[28px] border border-[var(--border)] bg-white p-7 shadow-sm">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--accent)]">
-            Por turma
-          </p>
-          <h3 className="mt-3 text-2xl font-semibold text-[var(--foreground)]">
-            Exportações por turma
-          </h3>
-          <p className="mt-3 text-sm leading-6 text-[var(--muted-foreground)]">
-            Gere arquivos separados para cada turma cadastrada no sistema.
-          </p>
+      <div className="grid gap-5">
+        <ExportOptionsPanel
+          eyebrow="Por turma"
+          title="Exportações por turma"
+          description="Gere arquivos separados para cada turma cadastrada no sistema."
+          options={classOptions}
+          queryParam="class"
+          emptyMessage="Nenhuma turma cadastrada até o momento."
+        />
 
-          <div className="mt-6 flex flex-wrap gap-3">
-            {classOptions.length > 0 ? (
-              classOptions.map((classItem) => (
-                <Link
-                  key={classItem.id}
-                  href={`/api/students/export?class=${encodeURIComponent(classItem.name)}`}
-                  className="rounded-full border border-[var(--border)] bg-[var(--panel)] px-4 py-2 text-sm font-semibold text-[var(--foreground)] transition hover:bg-white"
-                >
-                  {classItem.name}
-                </Link>
-              ))
-            ) : (
-              <p className="text-sm text-[var(--muted-foreground)]">
-                Nenhuma turma cadastrada até o momento.
-              </p>
-            )}
-          </div>
-        </div>
-
-        <div className="rounded-[28px] border border-[var(--border)] bg-white p-7 shadow-sm">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--accent)]">
-            Por professor
-          </p>
-          <h3 className="mt-3 text-2xl font-semibold text-[var(--foreground)]">
-            Exportações por professor
-          </h3>
-          <p className="mt-3 text-sm leading-6 text-[var(--muted-foreground)]">
-            Exporte apenas os alunos vinculados a cada professor cadastrado.
-          </p>
-
-          <div className="mt-6 flex flex-wrap gap-3">
-            {teacherOptions.length > 0 ? (
-              teacherOptions.map((teacherItem) => (
-                <Link
-                  key={teacherItem.id}
-                  href={`/api/students/export?teacher=${encodeURIComponent(teacherItem.name)}`}
-                  className="rounded-full border border-[var(--border)] bg-[var(--panel)] px-4 py-2 text-sm font-semibold text-[var(--foreground)] transition hover:bg-white"
-                >
-                  {teacherItem.name}
-                </Link>
-              ))
-            ) : (
-              <p className="text-sm text-[var(--muted-foreground)]">
-                Nenhum professor cadastrado até o momento.
-              </p>
-            )}
-          </div>
-        </div>
+        <ExportOptionsPanel
+          eyebrow="Por professor"
+          title="Exportações por professor"
+          description="Exporte apenas os alunos vinculados a cada professor cadastrado."
+          options={teacherOptions}
+          queryParam="teacher"
+          emptyMessage="Nenhum professor cadastrado até o momento."
+        />
       </div>
 
       <div className="rounded-[28px] border border-[var(--border)] bg-white p-7 shadow-sm">

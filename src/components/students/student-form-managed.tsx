@@ -8,21 +8,50 @@ import { BRAZIL_STATE_OPTIONS } from "@/lib/brazil/states";
 import { validateStudentFormFields } from "@/lib/students/form-helpers";
 
 const studentPersonalFields = [
-  { name: "full_name", label: "Nome", required: true, pattern: "[A-Za-zÀ-ÖØ-öø-ÿ' ]+" },
-  { name: "birth_date", label: "Data de nascimento", type: "date" },
-  { name: "rg", label: "RG" },
-  { name: "email", label: "E-mail", type: "email" },
-  { name: "phone", label: "Celular", inputMode: "tel", pattern: "[0-9()\\-+ ]{8,16}", format: "phone" },
-  { name: "instagram", label: "Instagram" },
-  { name: "profession", label: "Profissão" },
-  { name: "cpf", label: "CPF", inputMode: "numeric", pattern: "[0-9.\\- ]{11,14}", format: "cpf" },
+  {
+    name: "full_name",
+    label: "Nome",
+    required: true,
+    pattern: "[A-Za-zÀ-ÖØ-öø-ÿ' ]+",
+    className: "md:col-span-2 xl:col-span-4",
+  },
+  { name: "birth_date", label: "Data de nascimento", type: "date", className: "xl:col-span-3" },
+  { name: "rg", label: "RG", className: "xl:col-span-2" },
+  {
+    name: "cpf",
+    label: "CPF",
+    inputMode: "numeric",
+    pattern: "[0-9.\\- ]{11,14}",
+    format: "cpf",
+    className: "xl:col-span-3",
+  },
+  {
+    name: "phone",
+    label: "Celular",
+    inputMode: "tel",
+    pattern: "[0-9()\\-+ ]{8,16}",
+    format: "phone",
+    className: "xl:col-span-3",
+  },
+  { name: "email", label: "E-mail", type: "email", className: "md:col-span-2 xl:col-span-4" },
+  { name: "profession", label: "Profissão", className: "xl:col-span-3" },
+  { name: "instagram", label: "Instagram", className: "xl:col-span-2" },
 ] as const;
 
 const studentAddressFields = [
-  { name: "address", label: "Endereço" },
-  { name: "address_number", label: "Número", pattern: "[0-9][0-9\\-/ ]*" },
-  { name: "apartment", label: "Complemento" },
-  { name: "neighborhood", label: "Bairro" },
+  {
+    name: "zip_code",
+    label: "CEP",
+    inputMode: "numeric",
+    pattern: "[0-9.\\- ]{8,10}",
+    format: "zip",
+    className: "xl:col-span-2",
+  },
+  { name: "address", label: "Endereço", className: "md:col-span-2 xl:col-span-8" },
+  { name: "address_number", label: "Número", pattern: "[0-9][0-9\\-/ ]*", className: "xl:col-span-2" },
+  { name: "apartment", label: "Complemento", className: "xl:col-span-3" },
+  { name: "neighborhood", label: "Bairro", className: "xl:col-span-3" },
+  { name: "city", label: "Cidade", className: "xl:col-span-4" },
 ] as const;
 
 const guardian1Fields = [
@@ -193,6 +222,7 @@ function FieldGrid({
   fields,
   values,
   errors,
+  className = "grid gap-3 md:grid-cols-2 xl:grid-cols-12",
 }: {
   fields: ReadonlyArray<{
     name: string;
@@ -203,17 +233,22 @@ function FieldGrid({
     maxLength?: number;
     inputMode?: "numeric" | "tel";
     format?: StandardFormat;
+    className?: string;
   }>;
   values?: FormValues;
   errors?: Record<string, string>;
+  className?: string;
 }) {
   return (
-    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+    <div className={className}>
       {fields.map((field) => {
         const fieldError = errors?.[field.name];
 
         return (
-          <label key={field.name} className="block text-sm font-medium text-[var(--foreground)]">
+          <label
+            key={field.name}
+            className={`block text-sm font-medium text-[var(--foreground)] ${field.className ?? "xl:col-span-4"}`}
+          >
             {field.label}
             <input
               name={field.name}
@@ -534,24 +569,14 @@ export function StudentFormManaged({
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--muted-foreground)]">
               Endereço
             </p>
-            <div className="mt-3 grid gap-3 md:grid-cols-[minmax(0,1fr)_160px]">
-              <label className="block text-sm font-medium text-[var(--foreground)]">
-                Cidade
-                <input
-                  name="city"
-                  defaultValue={values?.city ?? ""}
-                  className={fieldClassName(Boolean(fieldErrors.city))}
-                  aria-invalid={Boolean(fieldErrors.city)}
-                  aria-describedby={fieldErrors.city ? "city-error" : undefined}
-                />
-                {fieldErrors.city ? (
-                  <span id="city-error" className="mt-1 block text-xs font-semibold text-[rgb(185,28,28)]">
-                    {fieldErrors.city}
-                  </span>
-                ) : null}
-              </label>
-
-              <label className="block text-sm font-medium text-[var(--foreground)]">
+            <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-12">
+              <FieldGrid
+                fields={studentAddressFields}
+                values={values}
+                errors={fieldErrors}
+                className="contents"
+              />
+              <label className="block text-sm font-medium text-[var(--foreground)] xl:col-span-2">
                 UF
                 <select
                   name="state"
@@ -574,30 +599,6 @@ export function StudentFormManaged({
                 ) : null}
               </label>
             </div>
-            <div className="mt-3">
-              <FieldGrid fields={studentAddressFields} values={values} errors={fieldErrors} />
-            </div>
-            <label className="mt-3 block text-sm font-medium text-[var(--foreground)] md:max-w-xs">
-                CEP
-                <input
-                  name="zip_code"
-                  defaultValue={values?.zip_code ?? ""}
-                  inputMode="numeric"
-                  pattern="[0-9.\- ]{8,10}"
-                  data-format="zip"
-                  onBlur={(event) => {
-                    event.currentTarget.value = formatZipCode(event.currentTarget.value);
-                  }}
-                  className={fieldClassName(Boolean(fieldErrors.zip_code))}
-                  aria-invalid={Boolean(fieldErrors.zip_code)}
-                  aria-describedby={fieldErrors.zip_code ? "zip-code-error" : undefined}
-                />
-                {fieldErrors.zip_code ? (
-                  <span id="zip-code-error" className="mt-1 block text-xs font-semibold text-[rgb(185,28,28)]">
-                    {fieldErrors.zip_code}
-                  </span>
-                ) : null}
-              </label>
           </div>
           <div className="mt-5">
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--muted-foreground)]">
