@@ -66,7 +66,7 @@ export default async function DashboardLayout({
           <form action={logoutAction} className="mt-2">
             <button
               type="submit"
-              className="w-full rounded-xl border border-[rgba(153,27,27,0.22)] bg-[rgb(153,27,27)] px-3 py-2 text-sm font-semibold text-white transition hover:opacity-95"
+              className="w-full rounded-xl border border-[var(--primary)] bg-[var(--primary)] px-3 py-2 text-sm font-semibold text-white transition hover:opacity-95"
             >
               Sair do aplicativo
             </button>

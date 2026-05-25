@@ -307,8 +307,6 @@ export function StudentFormManaged({
   studentId,
   existingPayments = [],
 }: StudentFormProps) {
-  const [selectedClassName, setSelectedClassName] = useState(values?.class_name ?? "");
-  const [teacherName, setTeacherName] = useState(values?.teacher_name ?? "");
   const [financialContactSource, setFinancialContactSource] = useState<FinancialContactSource>(
     (values?.financial_contact_source as FinancialContactSource | undefined) ?? "manual",
   );
@@ -324,6 +322,7 @@ export function StudentFormManaged({
     ),
   );
   const formRef = useRef<HTMLFormElement>(null);
+  const teacherSelectRef = useRef<HTMLSelectElement>(null);
   const isSubmittingRef = useRef(false);
   const allowNavigationRef = useRef(false);
   const pendingNavigationRef = useRef<(() => void) | null>(null);
@@ -338,6 +337,31 @@ export function StudentFormManaged({
 
     return bookOptions;
   }, [bookOptions, values?.current_book]);
+  const currentClassOptions = useMemo(() => {
+    const classNames = classOptions.map((courseClass) => courseClass.name);
+    const value = values?.class_name;
+
+    if (value && !classNames.includes(value)) {
+      return [{
+        id: "current-class-value",
+        name: value,
+        teacherId: null,
+        teacherName: values?.teacher_name ?? null,
+      }, ...classOptions];
+    }
+
+    return classOptions;
+  }, [classOptions, values?.class_name, values?.teacher_name]);
+  const currentTeacherOptions = useMemo(() => {
+    const teacherNames = teacherOptions.map((teacher) => teacher.name);
+    const value = values?.teacher_name;
+
+    if (value && !teacherNames.includes(value)) {
+      return [{ id: "current-teacher-value", name: value }, ...teacherOptions];
+    }
+
+    return teacherOptions;
+  }, [teacherOptions, values?.teacher_name]);
 
   useEffect(() => {
     if (!isDirty || isSubmitting) return;
@@ -381,12 +405,13 @@ export function StudentFormManaged({
   }, [isDirty, isSubmitting]);
 
   function handleClassChange(nextClassName: string) {
-    setSelectedClassName(nextClassName);
+    setIsDirty(true);
 
-    const selectedClass = classOptions.find((item) => item.name === nextClassName);
+    const selectedClass = currentClassOptions.find((item) => item.name === nextClassName);
+    const teacherSelect = teacherSelectRef.current;
 
-    if (selectedClass?.teacherName) {
-      setTeacherName(selectedClass.teacherName);
+    if (teacherSelect) {
+      teacherSelect.value = selectedClass?.teacherName ?? "";
     }
   }
 
@@ -671,12 +696,12 @@ export function StudentFormManaged({
               Turma/Horário
               <select
                 name="class_name"
-                value={selectedClassName}
+                defaultValue={values?.class_name ?? ""}
                 onChange={(event) => handleClassChange(event.target.value)}
-              className={inputClassName()}
-            >
+                className={inputClassName()}
+              >
                 <option value="">Selecione</option>
-                {classOptions.map((item) => (
+                {currentClassOptions.map((item) => (
                   <option key={item.id} value={item.name}>
                     {item.name}
                   </option>
@@ -687,13 +712,14 @@ export function StudentFormManaged({
             <label className="block text-sm font-medium text-[var(--foreground)]">
               Professor
               <select
+                ref={teacherSelectRef}
                 name="teacher_name"
-                value={teacherName}
-                onChange={(event) => setTeacherName(event.target.value)}
-              className={inputClassName()}
-            >
+                defaultValue={values?.teacher_name ?? ""}
+                onChange={() => setIsDirty(true)}
+                className={inputClassName()}
+              >
                 <option value="">Selecione</option>
-                {teacherOptions.map((item) => (
+                {currentTeacherOptions.map((item) => (
                   <option key={item.id} value={item.name}>
                     {item.name}
                   </option>

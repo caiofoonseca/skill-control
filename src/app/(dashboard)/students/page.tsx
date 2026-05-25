@@ -374,12 +374,20 @@ export default async function StudentsPage({ searchParams }: PageProps) {
 
             <div className="overflow-x-auto">
               <table className="min-w-full border-collapse">
+                <colgroup>
+                  <col className="w-[31%]" />
+                  <col className="w-[25%]" />
+                  <col className="w-[12%]" />
+                  <col className="w-[22%]" />
+                  <col className="w-[10%]" />
+                </colgroup>
                 <thead>
                   <tr className="border-b border-[rgba(15,23,42,0.08)] text-left text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted-foreground)]">
                     <th className="px-4 py-2">Aluno</th>
                     <th className="px-4 py-2">Turma/Horário</th>
                     <th className="px-4 py-2">Professor</th>
                     <th className="px-4 py-2">Contato</th>
+                    <th className="px-4 py-2 text-right">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[rgba(15,23,42,0.07)]">
@@ -421,24 +429,68 @@ export default async function StudentsPage({ searchParams }: PageProps) {
                         <div className="mt-1 text-[var(--muted-foreground)]">
                           {student.email ?? "-"}
                         </div>
-                        <div className="mt-3 flex items-center gap-2">
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="flex items-center justify-end gap-1.5">
                           <Link
                             href={`/students/${student.id}`}
-                            className="text-sm font-semibold text-[var(--accent)]"
+                            aria-label={`Ver detalhes de ${student.full_name}`}
+                            title="Ver detalhes"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-[var(--border)] bg-white text-[var(--accent)] transition hover:bg-[var(--panel)]"
                           >
-                            Ver detalhes
+                            <svg
+                              aria-hidden="true"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="h-4 w-4"
+                            >
+                              <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+                              <circle cx="12" cy="12" r="3" />
+                            </svg>
                           </Link>
                           <Link
                             href={`/students/${student.id}#pagamentos-do-aluno`}
-                            className="text-sm font-semibold text-[var(--foreground)]"
+                            aria-label={`Visualizar pagamentos de ${student.full_name}`}
+                            title="Visualizar pagamentos"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-[var(--border)] bg-white text-[var(--foreground)] transition hover:bg-[var(--panel)]"
                           >
-                            Visualizar pagamentos
+                            <svg
+                              aria-hidden="true"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="h-4 w-4"
+                            >
+                              <line x1="12" x2="12" y1="2" y2="22" />
+                              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6" />
+                            </svg>
                           </Link>
                           <Link
                             href={`/students/${student.id}/edit`}
-                            className="-ml-3 rounded-lg bg-[rgb(153,27,27)] px-2.5 py-1.5 text-sm font-semibold text-white"
+                            aria-label={`Editar ${student.full_name}`}
+                            title="Editar"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-[var(--primary)] text-white transition hover:opacity-95"
                           >
-                            Editar
+                            <svg
+                              aria-hidden="true"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              className="h-4 w-4"
+                            >
+                              <path d="M12 20h9" />
+                              <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                            </svg>
                           </Link>
                         </div>
                       </td>

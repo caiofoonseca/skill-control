@@ -323,13 +323,13 @@ export default async function StudentDetailsPage({
           </Link>
           <Link
             href={`/students/${student.id}/edit`}
-            className="rounded-xl bg-[rgb(153,27,27)] px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-95"
+            className="rounded-xl bg-[var(--primary)] px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-95"
           >
             Editar
           </Link>
           <Link
             href={`/students/${student.id}/delete`}
-            className="rounded-xl bg-[rgb(153,27,27)] px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-95"
+            className="rounded-xl bg-[var(--primary)] px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-95"
           >
             Excluir
           </Link>
