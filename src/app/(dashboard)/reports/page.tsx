@@ -1,14 +1,7 @@
 ﻿import Link from "next/link";
 
-import { getMonthlyBirthdays, getStudentOptions } from "@/lib/organization/queries";
+import { getStudentOptions } from "@/lib/organization/queries";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-
-function formatBirthday(date: string) {
-  return new Date(`${date}T12:00:00`).toLocaleDateString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-  });
-}
 
 function ExportOptionsPanel({
   eyebrow,
@@ -83,10 +76,9 @@ function ExportOptionsPanel({
 export default async function ReportsPage() {
   const supabase = await createSupabaseServerClient();
 
-  const [{ count: totalStudents }, { classOptions, teacherOptions }, birthdays] = await Promise.all([
+  const [{ count: totalStudents }, { classOptions, teacherOptions }] = await Promise.all([
     supabase.from("students").select("*", { count: "exact", head: true }),
     getStudentOptions(),
-    getMonthlyBirthdays(),
   ]);
 
   return (
@@ -103,7 +95,7 @@ export default async function ReportsPage() {
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-3">
         <div className="rounded-[24px] border border-[var(--border)] bg-white p-6 shadow-sm">
           <p className="text-sm font-medium text-[var(--muted-foreground)]">
             Alunos cadastrados
@@ -128,15 +120,6 @@ export default async function ReportsPage() {
           </p>
           <p className="mt-3 text-3xl font-semibold text-[var(--foreground)]">
             {teacherOptions.length}
-          </p>
-        </div>
-
-        <div className="rounded-[24px] border border-[var(--border)] bg-white p-6 shadow-sm">
-          <p className="text-sm font-medium text-[var(--muted-foreground)]">
-            Aniversariantes do mês
-          </p>
-          <p className="mt-3 text-3xl font-semibold text-[var(--foreground)]">
-            {birthdays.length}
           </p>
         </div>
       </div>
@@ -190,42 +173,6 @@ export default async function ReportsPage() {
           queryParam="teacher"
           emptyMessage="Nenhum professor cadastrado até o momento."
         />
-      </div>
-
-      <div className="rounded-[28px] border border-[var(--border)] bg-white p-7 shadow-sm">
-        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--accent)]">
-          Aniversariantes
-        </p>
-        <h3 className="mt-3 text-2xl font-semibold text-[var(--foreground)]">
-          Alunos que fazem aniversário neste mês
-        </h3>
-        <p className="mt-3 text-sm leading-6 text-[var(--muted-foreground)]">
-          Consulte rapidamente o nome do aluno e o dia exato do aniversário.
-        </p>
-
-        <div className="mt-6 space-y-3">
-          {birthdays.length > 0 ? (
-            birthdays.map((birthday) => (
-              <div
-                key={birthday.id}
-                className="flex items-center justify-between rounded-2xl border border-[var(--border)] bg-[var(--panel)] px-4 py-3"
-              >
-                <p className="text-sm font-semibold text-[var(--foreground)]">
-                  {birthday.fullName}
-                </p>
-                <p className="text-sm text-[var(--muted-foreground)]">
-                  {formatBirthday(birthday.birthDate)}
-                </p>
-              </div>
-            ))
-          ) : (
-            <div className="rounded-[24px] border border-dashed border-[var(--border)] bg-[var(--panel)] px-6 py-8 text-center">
-              <p className="text-sm text-[var(--muted-foreground)]">
-                Nenhum aniversariante encontrado para este mês.
-              </p>
-            </div>
-          )}
-        </div>
       </div>
     </section>
   );

@@ -59,67 +59,46 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[1fr_1fr_1.15fr]">
-        <div className="rounded-[24px] border border-[var(--border)] bg-white p-6 shadow-sm">
-          <p className="text-sm font-medium text-[var(--muted-foreground)]">
-            Cadastro de alunos
-          </p>
-          <h3 className="mt-3 text-xl font-semibold text-[var(--foreground)]">
-            Registros centralizados
-          </h3>
-          <p className="mt-3 text-sm leading-6 text-[var(--muted-foreground)]">
-            Consulte, cadastre, edite e acompanhe os dados dos alunos em um único lugar.
-          </p>
+      <div className="rounded-[28px] border border-[var(--border)] bg-white p-7 shadow-sm">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--accent)]">
+              Aniversariantes
+            </p>
+            <h3 className="mt-3 text-2xl font-semibold text-[var(--foreground)]">
+              Alunos que fazem aniversário neste mês
+            </h3>
+            <p className="mt-3 text-sm leading-6 text-[var(--muted-foreground)]">
+              Consulte rapidamente o nome do aluno e o dia exato do aniversário.
+            </p>
+          </div>
+          <div className="rounded-full border border-[var(--border)] bg-[var(--panel)] px-4 py-2 text-sm font-semibold text-[var(--foreground)]">
+            {birthdays.length}
+          </div>
         </div>
 
-        <div className="rounded-[24px] border border-[var(--border)] bg-white p-6 shadow-sm">
-          <p className="text-sm font-medium text-[var(--muted-foreground)]">
-            Segurança
-          </p>
-          <h3 className="mt-3 text-xl font-semibold text-[var(--foreground)]">
-            Acesso restrito
-          </h3>
-          <p className="mt-3 text-sm leading-6 text-[var(--muted-foreground)]">
-            Apenas usuários autorizados podem acessar a área administrativa.
-          </p>
-        </div>
-
-        <div className="rounded-[24px] border border-[var(--border)] bg-white p-6 shadow-sm">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-sm font-medium text-[var(--muted-foreground)]">
-                Aniversariantes do mês
+        <div className="mt-6 space-y-3">
+          {birthdays.length > 0 ? (
+            birthdays.map((birthday) => (
+              <div
+                key={birthday.id}
+                className="flex items-center justify-between rounded-2xl border border-[var(--border)] bg-[var(--panel)] px-4 py-3"
+              >
+                <p className="text-sm font-semibold text-[var(--foreground)]">
+                  {birthday.fullName}
+                </p>
+                <p className="text-sm text-[var(--muted-foreground)]">
+                  {formatBirthday(birthday.birthDate)}
+                </p>
+              </div>
+            ))
+          ) : (
+            <div className="rounded-[24px] border border-dashed border-[var(--border)] bg-[var(--panel)] px-6 py-8 text-center">
+              <p className="text-sm text-[var(--muted-foreground)]">
+                Nenhum aniversariante encontrado para este mês.
               </p>
-              <h3 className="mt-3 text-xl font-semibold text-[var(--foreground)]">
-                {birthdays.length > 0 ? "Acompanhe os aniversários" : "Nenhum aniversário neste mês"}
-              </h3>
             </div>
-            <div className="rounded-full bg-[var(--panel)] px-3 py-1.5 text-sm font-semibold text-[var(--foreground)]">
-              {birthdays.length}
-            </div>
-          </div>
-
-          <div className="mt-4 space-y-3">
-            {birthdays.length > 0 ? (
-              birthdays.map((birthday) => (
-                <div
-                  key={birthday.id}
-                  className="flex items-center justify-between rounded-2xl bg-[var(--panel)] px-4 py-3"
-                >
-                  <p className="text-sm font-semibold text-[var(--foreground)]">
-                    {birthday.fullName}
-                  </p>
-                  <p className="text-sm text-[var(--muted-foreground)]">
-                    {formatBirthday(birthday.birthDate)}
-                  </p>
-                </div>
-              ))
-            ) : (
-              <p className="text-sm leading-6 text-[var(--muted-foreground)]">
-                Assim que houver alunos com aniversário neste mês, eles aparecerão aqui com a data exata.
-              </p>
-            )}
-          </div>
+          )}
         </div>
       </div>
     </section>

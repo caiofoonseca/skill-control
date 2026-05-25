@@ -142,7 +142,7 @@ export default async function BooksPage({ searchParams }: PageProps) {
                         <div className="flex items-center justify-end gap-1.5">
                           <ActionIconLink
                             href={`/books?editing=${book.id}#book-${book.id}`}
-                            label={`Editar livro ${book.name}`}
+                            label="Editar livro"
                             icon="edit"
                             variant="primary"
                           />
@@ -150,7 +150,7 @@ export default async function BooksPage({ searchParams }: PageProps) {
                           {access.canDelete ? (
                           <form action={deleteBookAction.bind(null, book.id, book.name)}>
                             <ActionIconButton
-                              label={`Excluir livro ${book.name}`}
+                              label="Excluir livro"
                               icon="delete"
                               variant="danger"
                             />

@@ -188,21 +188,21 @@ export default async function ClassesPage({ searchParams }: PageProps) {
                                 ? `/classes#class-${item.id}`
                                 : `/classes?viewing=${item.id}#class-${item.id}`
                             }
-                            label={`${isViewingStudents ? "Ocultar alunos" : "Visualizar alunos"} da turma ${item.name}`}
+                            label={isViewingStudents ? "Ocultar alunos" : "Visualizar alunos"}
                             icon={isViewingStudents ? "hide" : "view"}
                             variant="accent"
                           />
 
                           <ActionIconLink
                             href={`/classes?editing=${item.id}#class-${item.id}`}
-                            label={`Editar turma ${item.name}`}
+                            label="Editar turma"
                             icon="edit"
                             variant="primary"
                           />
 
                           <form action={deleteClassAction.bind(null, item.id, item.name)}>
                             <ActionIconButton
-                              label={`Excluir turma ${item.name}`}
+                              label="Excluir turma"
                               icon="delete"
                               variant="danger"
                             />

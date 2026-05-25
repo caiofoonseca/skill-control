@@ -203,14 +203,14 @@ export default async function TeachersPage({ searchParams }: PageProps) {
                         <div className="flex items-center justify-end gap-1.5">
                           <ActionIconLink
                             href={`/teachers?editing=${item.id}`}
-                            label={`Editar professor ${item.name}`}
+                            label="Editar professor"
                             icon="edit"
                             variant="primary"
                           />
 
                           <form action={deleteTeacherAction.bind(null, item.id, item.name)}>
                             <ActionIconButton
-                              label={`Excluir professor ${item.name}`}
+                              label="Excluir professor"
                               icon="delete"
                               variant="danger"
                             />
