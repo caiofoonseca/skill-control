@@ -155,16 +155,16 @@ export default async function ReportsPage() {
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-3">
+          <div className="flex w-full flex-col gap-3 sm:w-auto lg:ml-auto lg:items-end">
             <Link
               href="/api/students/export"
-              className="rounded-xl bg-[var(--primary)] px-5 py-3 text-sm font-semibold text-white transition hover:opacity-95"
+              className="w-full rounded-xl bg-[var(--primary)] px-5 py-3 text-center text-sm font-semibold text-white transition hover:opacity-95 sm:w-64"
             >
               Exportar para Excel
             </Link>
             <Link
               href="/reports/print"
-              className="rounded-xl border border-[var(--border)] bg-[var(--panel)] px-5 py-3 text-sm font-semibold text-[var(--foreground)] transition hover:bg-white"
+              className="w-full rounded-xl border border-[var(--border)] bg-[var(--panel)] px-5 py-3 text-center text-sm font-semibold text-[var(--foreground)] transition hover:bg-white sm:w-64"
             >
               Abrir versão para impressão
             </Link>
