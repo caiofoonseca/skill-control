@@ -1,4 +1,5 @@
 import { createBookAction, deleteBookAction, updateBookAction } from "./actions";
+import { ActionIconButton, ActionIconLink } from "@/components/ui/action-icon";
 import { getBookManagementData } from "@/lib/organization/queries";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getCurrentUserAccess } from "@/lib/users/permissions";
@@ -138,22 +139,21 @@ export default async function BooksPage({ searchParams }: PageProps) {
                           </a>
                         </div>
                       ) : access.canWrite ? (
-                        <div className="flex flex-col gap-3 sm:flex-row">
-                          <a
+                        <div className="flex items-center justify-end gap-1.5">
+                          <ActionIconLink
                             href={`/books?editing=${book.id}#book-${book.id}`}
-                            className="rounded-xl border border-[var(--border)] bg-white px-4 py-2 text-center text-sm font-semibold text-[var(--foreground)] transition hover:bg-white"
-                          >
-                            Editar
-                          </a>
+                            label={`Editar livro ${book.name}`}
+                            icon="edit"
+                            variant="primary"
+                          />
 
                           {access.canDelete ? (
                           <form action={deleteBookAction.bind(null, book.id, book.name)}>
-                            <button
-                              type="submit"
-                              className="rounded-xl border border-[rgba(153,27,27,0.2)] bg-white px-4 py-2 text-sm font-semibold text-[rgb(153,27,27)] transition hover:bg-[rgb(254,242,242)]"
-                            >
-                              Excluir
-                            </button>
+                            <ActionIconButton
+                              label={`Excluir livro ${book.name}`}
+                              icon="delete"
+                              variant="danger"
+                            />
                           </form>
                           ) : null}
                         </div>

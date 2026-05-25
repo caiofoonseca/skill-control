@@ -1,4 +1,5 @@
 ﻿import { createClassAction, deleteClassAction, updateClassAction } from "./actions";
+import { ActionIconButton, ActionIconLink } from "@/components/ui/action-icon";
 import { getClassManagementData, getStudentOptions } from "@/lib/organization/queries";
 import { moveStudentToClassAction } from "./actions";
 
@@ -180,32 +181,31 @@ export default async function ClassesPage({ searchParams }: PageProps) {
                           </a>
                         </div>
                       ) : (
-                        <div className="flex flex-col gap-3 sm:flex-row">
-                          <a
+                        <div className="flex items-center justify-end gap-1.5">
+                          <ActionIconLink
                             href={
                               isViewingStudents
                                 ? `/classes#class-${item.id}`
                                 : `/classes?viewing=${item.id}#class-${item.id}`
                             }
-                            className="rounded-xl border border-[var(--border)] bg-white px-4 py-2 text-center text-sm font-semibold text-[var(--foreground)] transition hover:bg-[var(--background)]"
-                          >
-                            {isViewingStudents ? "Ocultar alunos" : "Visualizar alunos"}
-                          </a>
+                            label={`${isViewingStudents ? "Ocultar alunos" : "Visualizar alunos"} da turma ${item.name}`}
+                            icon={isViewingStudents ? "hide" : "view"}
+                            variant="accent"
+                          />
 
-                          <a
+                          <ActionIconLink
                             href={`/classes?editing=${item.id}#class-${item.id}`}
-                            className="rounded-xl bg-[rgb(153,27,27)] px-4 py-2 text-center text-sm font-semibold text-white transition hover:opacity-95"
-                          >
-                            Editar turma
-                          </a>
+                            label={`Editar turma ${item.name}`}
+                            icon="edit"
+                            variant="primary"
+                          />
 
                           <form action={deleteClassAction.bind(null, item.id, item.name)}>
-                            <button
-                              type="submit"
-                              className="rounded-xl border border-[rgba(153,27,27,0.2)] bg-white px-4 py-2 text-sm font-semibold text-[rgb(153,27,27)] transition hover:bg-[rgb(254,242,242)]"
-                            >
-                              Excluir
-                            </button>
+                            <ActionIconButton
+                              label={`Excluir turma ${item.name}`}
+                              icon="delete"
+                              variant="danger"
+                            />
                           </form>
                         </div>
                       )}

@@ -1,4 +1,5 @@
 import { createTeacherAction, deleteTeacherAction, updateTeacherAction } from "./actions";
+import { ActionIconButton, ActionIconLink } from "@/components/ui/action-icon";
 import { getTeacherManagementData } from "@/lib/organization/queries";
 
 type PageProps = {
@@ -199,21 +200,20 @@ export default async function TeachersPage({ searchParams }: PageProps) {
                           </a>
                         </div>
                       ) : (
-                        <div className="flex flex-col gap-3 sm:flex-row">
-                          <a
+                        <div className="flex items-center justify-end gap-1.5">
+                          <ActionIconLink
                             href={`/teachers?editing=${item.id}`}
-                            className="rounded-xl border border-[var(--border)] bg-white px-4 py-2 text-center text-sm font-semibold text-[var(--foreground)] transition hover:bg-white"
-                          >
-                            Editar
-                          </a>
+                            label={`Editar professor ${item.name}`}
+                            icon="edit"
+                            variant="primary"
+                          />
 
                           <form action={deleteTeacherAction.bind(null, item.id, item.name)}>
-                            <button
-                              type="submit"
-                              className="rounded-xl border border-[rgba(153,27,27,0.2)] bg-white px-4 py-2 text-sm font-semibold text-[rgb(153,27,27)] transition hover:bg-[rgb(254,242,242)]"
-                            >
-                              Excluir
-                            </button>
+                            <ActionIconButton
+                              label={`Excluir professor ${item.name}`}
+                              icon="delete"
+                              variant="danger"
+                            />
                           </form>
                         </div>
                       )}
