@@ -61,7 +61,7 @@ export default async function UsersPage({ searchParams }: PageProps) {
         </div>
       ) : null}
 
-      <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+      <div className="grid items-start gap-6 xl:grid-cols-[0.9fr_1.1fr]">
         <div className="space-y-6">
           <div className="rounded-[28px] border border-[var(--border)] bg-white p-7 shadow-sm">
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--accent)]">
