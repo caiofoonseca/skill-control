@@ -387,7 +387,7 @@ export default async function StudentsPage({ searchParams }: PageProps) {
                     <th className="px-4 py-2">Turma/Horário</th>
                     <th className="px-4 py-2">Professor</th>
                     <th className="px-4 py-2">Contato</th>
-                    <th className="px-4 py-2 text-right">Ações</th>
+                    <th className="px-4 py-2">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[rgba(15,23,42,0.07)]">
