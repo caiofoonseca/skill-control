@@ -1,4 +1,4 @@
-﻿import { createClassAction, deleteClassAction, updateClassAction } from "./actions";
+﻿import { addStudentToClassAction, createClassAction, deleteClassAction, updateClassAction } from "./actions";
 import { ActionIconButton, ActionIconLink } from "@/components/ui/action-icon";
 import { getClassManagementData, getStudentOptions } from "@/lib/organization/queries";
 import { moveStudentToClassAction } from "./actions";
@@ -11,17 +11,37 @@ type PageProps = {
     error?: string;
     editing?: string;
     viewing?: string;
+    q?: string;
   }>;
 };
 
+function buildClassesHref(params: { q?: string | null; editing?: string | null; viewing?: string | null }) {
+  const searchParams = new URLSearchParams();
+
+  if (params.q) searchParams.set("q", params.q);
+  if (params.editing) searchParams.set("editing", params.editing);
+  if (params.viewing) searchParams.set("viewing", params.viewing);
+
+  return `/classes${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+}
+
 export default async function ClassesPage({ searchParams }: PageProps) {
   const params = await searchParams;
-  const [classes, { teacherOptions }] = await Promise.all([
+  const [allClasses, { teacherOptions }] = await Promise.all([
     getClassManagementData(),
     getStudentOptions(),
   ]);
   const editingId = params.editing ?? null;
   const viewingId = params.viewing ?? null;
+  const searchTerm = params.q?.trim() ?? "";
+  const normalizedSearchTerm = searchTerm.toLocaleLowerCase("pt-BR");
+  const classes = normalizedSearchTerm
+    ? allClasses.filter((item) =>
+        [item.name, item.teacherName ?? ""].some((value) =>
+          value.toLocaleLowerCase("pt-BR").includes(normalizedSearchTerm),
+        ),
+      )
+    : allClasses;
 
   return (
     <section className="space-y-6">
@@ -116,6 +136,34 @@ export default async function ClassesPage({ searchParams }: PageProps) {
             </div>
           </div>
 
+          <form action="/classes" className="mt-5 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
+            <label className="block text-sm font-medium text-[var(--foreground)]">
+              Buscar turma ou professor
+              <input
+                name="q"
+                defaultValue={searchTerm}
+                placeholder="Digite o nome da turma ou professor"
+                className="mt-2 w-full rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[rgba(182,133,58,0.18)]"
+              />
+            </label>
+            <div className="flex items-end gap-2">
+              <button
+                type="submit"
+                className="cursor-pointer rounded-xl bg-[var(--primary)] px-5 py-3 text-sm font-semibold text-white transition hover:opacity-95"
+              >
+                Buscar
+              </button>
+              {searchTerm ? (
+                <a
+                  href="/classes"
+                  className="rounded-xl border border-[var(--border)] bg-white px-5 py-3 text-sm font-semibold text-[var(--foreground)] transition hover:bg-[var(--panel)]"
+                >
+                  Limpar
+                </a>
+              ) : null}
+            </div>
+          </form>
+
           <div className="mt-6 space-y-3">
             {classes.length > 0 ? (
               classes.map((item) => {
@@ -141,52 +189,13 @@ export default async function ClassesPage({ searchParams }: PageProps) {
                         </p>
                       </div>
 
-                      {isEditing ? (
-                        <div className="flex flex-col gap-3">
-                          <form
-                            action={updateClassAction.bind(null, item.id, item.name)}
-                            className="flex flex-col gap-3 sm:flex-row sm:flex-wrap"
-                          >
-                            <input
-                              name="name"
-                              defaultValue={item.name}
-                              aria-label={`Editar turma ${item.name}`}
-                              className="min-w-[260px] rounded-xl border border-[var(--border)] bg-white px-4 py-2.5 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--accent)]"
-                            />
-                            <select
-                              name="teacher_id"
-                              defaultValue={item.teacher_id ?? ""}
-                              className="min-w-[220px] rounded-xl border border-[var(--border)] bg-white px-4 py-2.5 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--accent)]"
-                            >
-                              <option value="">Selecione</option>
-                              {teacherOptions.map((teacher) => (
-                                <option key={teacher.id} value={teacher.id}>
-                                  {teacher.name}
-                                </option>
-                              ))}
-                            </select>
-                            <button
-                              type="submit"
-                              className="rounded-xl border border-[var(--border)] bg-white px-4 py-2 text-sm font-semibold text-[var(--foreground)] transition hover:bg-white"
-                            >
-                              Salvar
-                            </button>
-                          </form>
-
-                          <a
-                            href="/classes"
-                            className="rounded-xl border border-[var(--border)] bg-white px-4 py-2 text-center text-sm font-semibold text-[var(--foreground)] transition hover:bg-white"
-                          >
-                            Cancelar
-                          </a>
-                        </div>
-                      ) : (
+                      {!isEditing ? (
                         <div className="flex items-center justify-end gap-1.5">
                           <ActionIconLink
                             href={
                               isViewingStudents
-                                ? `/classes#class-${item.id}`
-                                : `/classes?viewing=${item.id}#class-${item.id}`
+                                ? `${buildClassesHref({ q: searchTerm })}#class-${item.id}`
+                                : `${buildClassesHref({ q: searchTerm, viewing: item.id })}#class-${item.id}`
                             }
                             label={isViewingStudents ? "Ocultar alunos" : "Visualizar alunos"}
                             icon={isViewingStudents ? "hide" : "view"}
@@ -194,7 +203,7 @@ export default async function ClassesPage({ searchParams }: PageProps) {
                           />
 
                           <ActionIconLink
-                            href={`/classes?editing=${item.id}#class-${item.id}`}
+                            href={`${buildClassesHref({ q: searchTerm, editing: item.id })}#class-${item.id}`}
                             label="Editar turma"
                             icon="edit"
                             variant="primary"
@@ -208,8 +217,125 @@ export default async function ClassesPage({ searchParams }: PageProps) {
                             />
                           </form>
                         </div>
-                      )}
+                      ) : null}
                     </div>
+                    {isEditing ? (
+                      <div className="mt-5 rounded-[18px] border border-[var(--border)] bg-white px-4 py-4">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                          <div>
+                            <p className="text-sm font-semibold text-[var(--foreground)]">
+                              Editar turma e alunos
+                            </p>
+                            <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+                              Atualize a turma, confira os alunos vinculados e inclua novos alunos.
+                            </p>
+                          </div>
+                          <a
+                            href={`${buildClassesHref({ q: searchTerm })}#class-${item.id}`}
+                            className="rounded-xl border border-[var(--border)] bg-white px-4 py-2 text-center text-sm font-semibold text-[var(--foreground)] transition hover:bg-[var(--panel)]"
+                          >
+                            Cancelar
+                          </a>
+                        </div>
+
+                        <form
+                          action={updateClassAction.bind(null, item.id, item.name)}
+                          className="mt-4 grid gap-3 lg:grid-cols-[minmax(220px,1fr)_minmax(220px,0.9fr)_auto]"
+                        >
+                          <label className="block text-sm font-medium text-[var(--foreground)]">
+                            Turma/Horário
+                            <input
+                              name="name"
+                              defaultValue={item.name}
+                              className="mt-2 w-full rounded-xl border border-[var(--border)] bg-white px-4 py-2.5 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--accent)]"
+                            />
+                          </label>
+                          <label className="block text-sm font-medium text-[var(--foreground)]">
+                            Professor responsável
+                            <select
+                              name="teacher_id"
+                              defaultValue={item.teacher_id ?? ""}
+                              className="mt-2 w-full rounded-xl border border-[var(--border)] bg-white px-4 py-2.5 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--accent)]"
+                            >
+                              <option value="">Selecione</option>
+                              {teacherOptions.map((teacher) => (
+                                <option key={teacher.id} value={teacher.id}>
+                                  {teacher.name}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+                          <div className="flex items-end">
+                            <button
+                              type="submit"
+                              className="w-full cursor-pointer rounded-xl bg-[var(--primary)] px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-95"
+                            >
+                              Salvar
+                            </button>
+                          </div>
+                        </form>
+
+                        <div className="mt-5 grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(260px,0.8fr)]">
+                          <div>
+                            <p className="text-sm font-semibold text-[var(--foreground)]">
+                              Alunos vinculados
+                            </p>
+                            {item.students.length > 0 ? (
+                              <div className="mt-3 space-y-2">
+                                {item.students.map((student) => (
+                                  <div
+                                    key={student.id}
+                                    className="rounded-[14px] border border-[var(--border)] bg-[var(--panel)] px-3 py-3"
+                                  >
+                                    <a
+                                      href={`/students/${student.id}`}
+                                      className="text-sm font-semibold text-[var(--foreground)]"
+                                    >
+                                      {student.fullName}
+                                    </a>
+                                    <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+                                      Professor atual: {student.teacherName || "Não definido"}
+                                    </p>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="mt-3 rounded-[14px] border border-dashed border-[var(--border)] bg-[var(--panel)] px-4 py-4 text-sm text-[var(--muted-foreground)]">
+                                Nenhum aluno vinculado a esta turma.
+                              </p>
+                            )}
+                          </div>
+
+                          <form
+                            action={addStudentToClassAction.bind(null, item.id)}
+                            className="self-start rounded-[16px] border border-[var(--border)] bg-[var(--panel)] px-4 py-4"
+                          >
+                            <label className="block text-sm font-medium text-[var(--foreground)]">
+                              Incluir aluno na turma
+                              <select
+                                name="student_id"
+                                defaultValue=""
+                                className="mt-2 w-full rounded-xl border border-[var(--border)] bg-white px-3 py-2.5 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--accent)]"
+                              >
+                                <option value="">Selecione um aluno</option>
+                                {item.availableStudents.map((student) => (
+                                  <option key={student.id} value={student.id}>
+                                    {student.fullName}
+                                    {student.className ? ` - ${student.className}` : " - sem turma"}
+                                  </option>
+                                ))}
+                              </select>
+                            </label>
+                            <button
+                              type="submit"
+                              className="mt-3 w-full cursor-pointer rounded-xl border border-[var(--border)] bg-white px-4 py-2.5 text-sm font-semibold text-[var(--foreground)] transition hover:bg-white"
+                            >
+                              Incluir aluno
+                            </button>
+                          </form>
+                        </div>
+                      </div>
+                    ) : null}
                     {isViewingStudents ? (
                     <div className="mt-4 rounded-[18px] border border-[var(--border)] bg-white px-4 py-4">
                       <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
@@ -249,7 +375,7 @@ export default async function ClassesPage({ searchParams }: PageProps) {
                                   defaultValue={item.id}
                                   className="min-w-0 flex-1 rounded-xl border border-[var(--border)] bg-white px-3 py-2 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--accent)]"
                                 >
-                                  {classes.map((classOption) => (
+                                  {allClasses.map((classOption) => (
                                     <option key={classOption.id} value={classOption.id}>
                                       {classOption.name}
                                     </option>
@@ -257,7 +383,7 @@ export default async function ClassesPage({ searchParams }: PageProps) {
                                 </select>
                                 <button
                                   type="submit"
-                                  className="rounded-xl border border-[var(--border)] bg-white px-3 py-2 text-sm font-semibold text-[var(--foreground)] transition hover:bg-[var(--background)]"
+                                  className="cursor-pointer rounded-xl border border-[var(--border)] bg-white px-3 py-2 text-sm font-semibold text-[var(--foreground)] transition hover:bg-[var(--background)]"
                                 >
                                   Realocar
                                 </button>

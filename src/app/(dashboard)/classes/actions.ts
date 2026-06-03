@@ -136,6 +136,49 @@ export async function moveStudentToClassAction(studentId: string, formData: Form
   redirect("/classes?updated=Aluno+realocado+com+sucesso");
 }
 
+export async function addStudentToClassAction(classId: string, formData: FormData) {
+  const studentId = getTextValue(formData, "student_id");
+
+  if (!studentId) {
+    redirect(`/classes?editing=${classId}&error=${encodeURIComponent("Selecione um aluno para incluir")}#class-${classId}`);
+  }
+
+  const supabase = await createSupabaseServerClient();
+  await assertCanWrite(supabase, "/classes");
+  const { data: targetClass, error: classError } = await supabase
+    .from("course_classes")
+    .select("name, teacher_id")
+    .eq("id", classId)
+    .maybeSingle();
+
+  if (classError || !targetClass) {
+    redirect("/classes?error=Turma+nao+encontrada");
+  }
+
+  const teacherName = targetClass.teacher_id
+    ? (await supabase
+        .from("teachers")
+        .select("name")
+        .eq("id", targetClass.teacher_id)
+        .maybeSingle()).data?.name ?? null
+    : null;
+
+  const { error } = await supabase
+    .from("students")
+    .update({
+      class_name: targetClass.name,
+      teacher_name: teacherName,
+    })
+    .eq("id", studentId);
+
+  if (error) {
+    redirect(`/classes?editing=${classId}&error=${encodeURIComponent("Nao foi possivel incluir o aluno")}#class-${classId}`);
+  }
+
+  revalidateSharedPaths();
+  redirect(`/classes?editing=${classId}&updated=${encodeURIComponent("Aluno incluido na turma com sucesso")}#class-${classId}`);
+}
+
 function revalidateSharedPaths() {
   revalidatePath("/classes");
   revalidatePath("/teachers");

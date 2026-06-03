@@ -141,6 +141,14 @@ export async function getClassManagementData() {
         fullName: student.full_name ?? "",
         teacherName: student.teacher_name ?? null,
       })),
+    availableStudents: studentRows
+      .filter((student) => student.class_name !== item.name)
+      .map((student) => ({
+        id: student.id,
+        fullName: student.full_name ?? "",
+        className: student.class_name ?? null,
+        teacherName: student.teacher_name ?? null,
+      })),
   }));
 }
 
