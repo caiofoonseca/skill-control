@@ -179,6 +179,26 @@ export async function addStudentToClassAction(classId: string, formData: FormDat
   redirect(`/classes?editing=${classId}&updated=${encodeURIComponent("Aluno incluido na turma com sucesso")}#class-${classId}`);
 }
 
+export async function removeStudentFromClassAction(studentId: string, classId: string) {
+  const supabase = await createSupabaseServerClient();
+  await assertCanWrite(supabase, "/classes");
+
+  const { error } = await supabase
+    .from("students")
+    .update({
+      class_name: null,
+      teacher_name: null,
+    })
+    .eq("id", studentId);
+
+  if (error) {
+    redirect(`/classes?editing=${classId}&error=${encodeURIComponent("Nao foi possivel remover o aluno da turma")}#class-${classId}`);
+  }
+
+  revalidateSharedPaths();
+  redirect(`/classes?editing=${classId}&updated=${encodeURIComponent("Aluno removido da turma com sucesso")}#class-${classId}`);
+}
+
 function revalidateSharedPaths() {
   revalidatePath("/classes");
   revalidatePath("/teachers");

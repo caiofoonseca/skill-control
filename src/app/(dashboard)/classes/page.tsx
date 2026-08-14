@@ -2,6 +2,7 @@
 import { ActionIconButton, ActionIconLink } from "@/components/ui/action-icon";
 import { getClassManagementData, getStudentOptions } from "@/lib/organization/queries";
 import { moveStudentToClassAction } from "./actions";
+import { removeStudentFromClassAction } from "./actions";
 
 type PageProps = {
   searchParams: Promise<{
@@ -285,17 +286,27 @@ export default async function ClassesPage({ searchParams }: PageProps) {
                                 {item.students.map((student) => (
                                   <div
                                     key={student.id}
-                                    className="rounded-[14px] border border-[var(--border)] bg-[var(--panel)] px-3 py-3"
+                                    className="flex flex-col gap-3 rounded-[14px] border border-[var(--border)] bg-[var(--panel)] px-3 py-3 sm:flex-row sm:items-start sm:justify-between"
                                   >
-                                    <a
-                                      href={`/students/${student.id}`}
-                                      className="text-sm font-semibold text-[var(--foreground)]"
-                                    >
-                                      {student.fullName}
-                                    </a>
-                                    <p className="mt-1 text-xs text-[var(--muted-foreground)]">
-                                      Professor atual: {student.teacherName || "Não definido"}
-                                    </p>
+                                    <div>
+                                      <a
+                                        href={`/students/${student.id}`}
+                                        className="text-sm font-semibold text-[var(--foreground)]"
+                                      >
+                                        {student.fullName}
+                                      </a>
+                                      <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+                                        Professor atual: {student.teacherName || "Não definido"}
+                                      </p>
+                                    </div>
+                                    <form action={removeStudentFromClassAction.bind(null, student.id, item.id)}>
+                                      <button
+                                        type="submit"
+                                        className="rounded-lg border border-[rgba(236,28,36,0.24)] bg-white px-3 py-2 text-xs font-semibold text-[var(--primary)] transition hover:bg-[rgba(236,28,36,0.06)]"
+                                      >
+                                        Remover da turma
+                                      </button>
+                                    </form>
                                   </div>
                                 ))}
                               </div>

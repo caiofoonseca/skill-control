@@ -8,6 +8,10 @@ export async function assertCanWrite(
 ) {
   const access = await getCurrentUserAccess(supabase);
 
+  if (!access.user) {
+    redirect("/login?error=Sessao+expirada.+Entre+novamente+e+tente+salvar+de+novo.");
+  }
+
   if (!access.canWrite) {
     redirect(`${redirectHref}?error=Acesso+somente+para+visualizacao`);
   }
@@ -18,6 +22,10 @@ export async function assertCanDelete(
   redirectHref: string,
 ) {
   const access = await getCurrentUserAccess(supabase);
+
+  if (!access.user) {
+    redirect("/login?error=Sessao+expirada.+Entre+novamente+e+tente+salvar+de+novo.");
+  }
 
   if (!access.canDelete) {
     redirect(`${redirectHref}?error=Seu+usuario+nao+tem+permissao+para+excluir`);
