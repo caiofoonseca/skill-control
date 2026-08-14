@@ -300,12 +300,11 @@ export default async function ClassesPage({ searchParams }: PageProps) {
                                       </p>
                                     </div>
                                     <form action={removeStudentFromClassAction.bind(null, student.id, item.id)}>
-                                      <button
-                                        type="submit"
-                                        className="rounded-lg border border-[rgba(236,28,36,0.24)] bg-white px-3 py-2 text-xs font-semibold text-[var(--primary)] transition hover:bg-[rgba(236,28,36,0.06)]"
-                                      >
-                                        Remover da turma
-                                      </button>
+                                      <ActionIconButton
+                                        label="Remover da turma"
+                                        icon="delete"
+                                        variant="danger"
+                                      />
                                     </form>
                                   </div>
                                 ))}

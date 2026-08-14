@@ -361,6 +361,8 @@ export function getRequiredTextValue(
 export function buildStudentPayload(
   formData: FormData,
 ): StudentInsert | StudentUpdate {
+  const isActive = formData.get("is_active") === "on";
+
   return {
     full_name: getTextValue(formData, "full_name") ?? "",
     address: getTextValue(formData, "address"),
@@ -377,13 +379,13 @@ export function buildStudentPayload(
     rg: getTextValue(formData, "rg"),
     phone: formatPhone(getTextValue(formData, "phone")),
     profession: getTextValue(formData, "profession"),
-    class_name: getTextValue(formData, "class_name"),
+    class_name: isActive ? getTextValue(formData, "class_name") : null,
     schedule: getTextValue(formData, "schedule"),
-    teacher_name: getTextValue(formData, "teacher_name"),
+    teacher_name: isActive ? getTextValue(formData, "teacher_name") : null,
     current_book: getTextValue(formData, "current_book"),
     source: getTextValue(formData, "source"),
     payment_notes: getTextValue(formData, "payment_notes"),
-    is_active: formData.get("is_active") === "on",
+    is_active: isActive,
     is_scholarship: formData.get("is_scholarship") === "on",
     scholarship_discount_percent:
       formData.get("is_scholarship") === "on"

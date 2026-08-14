@@ -20,19 +20,19 @@ function isValidPaymentType(value: string | null) {
 
 export async function createPaymentPlanAction(studentId: string, formData: FormData) {
   const paymentType = getTextValue(formData, "payment_type");
-  const totalAmount = normalizeMoney(getTextValue(formData, "total_amount"));
+  const totalAmount = normalizeMoney(getTextValue(formData, "total_amount")) ?? "0.00";
   const isInstallment = formData.get("is_installment") === "on";
   const installmentCount = Number(formData.get("installment_count") ?? 1);
   const defaultPaymentMethod = getTextValue(formData, "default_payment_method");
   const paymentBaseDate = getTextValue(formData, "payment_base_date");
 
-  if (!isValidPaymentType(paymentType) || !totalAmount) {
-    redirect(`/students/${studentId}/payments/new?error=Preencha+os+dados+do+pagamento`);
-  }
-
   const effectiveCount = isInstallment ? Math.max(installmentCount, 1) : 1;
-  const effectivePaymentType = paymentType ?? "installments";
-  const title = getTextValue(formData, "title") ?? getDefaultPaymentTitle(effectivePaymentType);
+  const effectivePaymentType = paymentType && isValidPaymentType(paymentType) ? paymentType : "installments";
+  const title =
+    getTextValue(formData, "title") ??
+    getTextValue(formData, "notes") ??
+    getTextValue(formData, "installment_description_1") ??
+    getDefaultPaymentTitle(effectivePaymentType);
 
   const supabase = await createSupabaseServerClient();
   await assertCanWrite(supabase, `/students/${studentId}/payments/new`);
@@ -63,10 +63,7 @@ export async function createPaymentPlanAction(studentId: string, formData: FormD
   for (let index = 1; index <= effectiveCount; index += 1) {
     const amount = normalizeMoney(getTextValue(formData, `installment_amount_${index}`));
 
-    if (!amount) {
-      await supabase.from("student_payment_plans").delete().eq("id", paymentPlan.id);
-      redirect(`/students/${studentId}/payments/new?error=Preencha+o+valor+de+todas+as+parcelas`);
-    }
+    const effectiveAmount = amount ?? "0.00";
 
     const installmentPaymentMethod =
       getTextValue(formData, `installment_payment_method_${index}`) ?? defaultPaymentMethod;
@@ -80,7 +77,7 @@ export async function createPaymentPlanAction(studentId: string, formData: FormD
       payment_plan_id: paymentPlan.id,
       student_id: studentId,
       installment_number: Number(formData.get(`installment_number_${index}`) ?? index),
-      amount,
+      amount: effectiveAmount,
       payment_method: installmentPaymentMethod,
       due_date: dueDate,
       paid_at: paidAt,

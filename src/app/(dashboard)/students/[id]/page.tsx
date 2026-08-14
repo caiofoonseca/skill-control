@@ -214,8 +214,8 @@ function PaymentPlanSection({
                             <input
                               name="description"
                               defaultValue={installment.description ?? ""}
-                              placeholder="Descrição"
-                              className="min-w-0 flex-1 rounded-xl border border-[var(--border)] bg-white px-3 py-2 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--accent)]"
+                              placeholder="Descrição ou observação da parcela"
+                              className="min-w-0 flex-1 rounded-xl border border-[rgba(182,133,58,0.42)] bg-[rgba(255,247,237,0.55)] px-4 py-3 text-base text-[var(--foreground)] outline-none transition placeholder:text-[rgba(20,48,95,0.62)] focus:border-[var(--accent)] focus:bg-white focus:ring-2 focus:ring-[rgba(182,133,58,0.2)]"
                             />
                             <div className="flex gap-2">
                               <button
@@ -247,7 +247,7 @@ function PaymentPlanSection({
             </div>
 
             {plan.notes ? (
-              <p className="mt-4 text-sm leading-6 text-[var(--muted-foreground)]">
+              <p className="mt-4 rounded-2xl border border-[rgba(182,133,58,0.28)] bg-[rgba(255,247,237,0.55)] px-4 py-3 text-base leading-7 text-[var(--foreground)]">
                 {plan.notes}
               </p>
             ) : null}

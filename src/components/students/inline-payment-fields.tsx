@@ -310,8 +310,8 @@ export function InlinePaymentFields({
             Observações do pagamento
             <textarea
               name="payment_notes"
-              rows={4}
-              className="mt-2 w-full rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[rgba(182,133,58,0.18)]"
+              rows={5}
+              className="mt-2 w-full rounded-2xl border border-[rgba(182,133,58,0.42)] bg-[rgba(255,247,237,0.55)] px-4 py-3 text-base text-[var(--foreground)] outline-none transition placeholder:text-[rgba(20,48,95,0.62)] focus:border-[var(--accent)] focus:bg-white focus:ring-2 focus:ring-[rgba(182,133,58,0.2)]"
               placeholder="Observações sobre essa cobrança."
             />
           </label>
@@ -420,7 +420,8 @@ export function InlinePaymentFields({
                       name={`payment_installment_description_${index + 1}`}
                       value={installment.description}
                       onChange={(event) => updateInstallment(index, "description", event.target.value)}
-                      className="mt-2 w-full rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--accent)] focus:ring-2 focus:ring-[rgba(182,133,58,0.18)]"
+                      placeholder="Descrição ou observação da parcela"
+                      className="mt-2 w-full rounded-2xl border border-[rgba(182,133,58,0.42)] bg-[rgba(255,247,237,0.55)] px-4 py-3 text-base text-[var(--foreground)] outline-none transition placeholder:text-[rgba(20,48,95,0.62)] focus:border-[var(--accent)] focus:bg-white focus:ring-2 focus:ring-[rgba(182,133,58,0.2)]"
                     />
                   </label>
                 </div>

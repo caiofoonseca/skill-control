@@ -35,6 +35,29 @@ function isValidPaymentType(value: string | null) {
   return Boolean(value && PAYMENT_TYPE_OPTIONS.some((option) => option.value === value));
 }
 
+function hasInlinePaymentContent(formData: FormData, installmentCount: number) {
+  const fields = [
+    "payment_type",
+    "payment_total_amount",
+    "payment_title",
+    "payment_default_method",
+    "payment_base_date",
+    "payment_notes",
+  ];
+
+  for (let index = 1; index <= Math.max(installmentCount, 1); index += 1) {
+    fields.push(
+      `payment_installment_amount_${index}`,
+      `payment_installment_method_${index}`,
+      `payment_installment_due_date_${index}`,
+      `payment_installment_paid_at_${index}`,
+      `payment_installment_description_${index}`,
+    );
+  }
+
+  return fields.some((field) => getTextValue(formData, field));
+}
+
 export async function updateStudentAction(studentId: string, formData: FormData) {
   const validationError = validateStudentForm(formData);
 
@@ -127,20 +150,24 @@ export async function updateStudentAction(studentId: string, formData: FormData)
 
   if (formData.get("create_initial_payment") === "on") {
     const paymentType = getTextValue(formData, "payment_type");
-    const totalAmount = normalizeMoney(getTextValue(formData, "payment_total_amount"));
+    const totalAmount = normalizeMoney(getTextValue(formData, "payment_total_amount")) ?? "0.00";
     const isInstallment = formData.get("payment_is_installment") === "on";
     const installmentCount = Number(formData.get("payment_installment_count") ?? 1);
     const defaultPaymentMethod = getTextValue(formData, "payment_default_method");
     const paymentBaseDate = getTextValue(formData, "payment_base_date");
 
-    if (!isValidPaymentType(paymentType) || !totalAmount) {
-      redirect(`/students/${studentId}/edit?error=Preencha+os+dados+do+pagamento`);
+    if (!hasInlinePaymentContent(formData, installmentCount)) {
+      revalidatePath("/students");
+      revalidatePath(`/students/${studentId}`);
+      redirect(`/students?updated=${encodeURIComponent(getRequiredTextValue(formData, "full_name", "Aluno"))}`);
     }
 
     const effectiveCount = isInstallment ? Math.max(installmentCount, 1) : 1;
-    const effectivePaymentType = paymentType ?? "installments";
+    const effectivePaymentType = paymentType && isValidPaymentType(paymentType) ? paymentType : "installments";
     const title =
-      getTextValue(formData, "payment_title") ?? getDefaultPaymentTitle(effectivePaymentType);
+      getTextValue(formData, "payment_title") ??
+      getTextValue(formData, "payment_notes") ??
+      getDefaultPaymentTitle(effectivePaymentType);
 
     const paymentPlanPayload: Database["public"]["Tables"]["student_payment_plans"]["Insert"] = {
       student_id: studentId,
@@ -170,10 +197,7 @@ export async function updateStudentAction(studentId: string, formData: FormData)
         getTextValue(formData, `payment_installment_amount_${index}`),
       );
 
-      if (!amount) {
-        await supabase.from("student_payment_plans").delete().eq("id", paymentPlan.id);
-        redirect(`/students/${studentId}/edit?error=Preencha+o+valor+de+todas+as+parcelas`);
-      }
+      const effectiveAmount = amount ?? "0.00";
 
       const installmentPaymentMethod =
         getTextValue(formData, `payment_installment_method_${index}`) ??
@@ -192,7 +216,7 @@ export async function updateStudentAction(studentId: string, formData: FormData)
         installment_number: Number(
           formData.get(`payment_installment_number_${index}`) ?? index,
         ),
-        amount,
+        amount: effectiveAmount,
         payment_method: installmentPaymentMethod,
         due_date: dueDate,
         paid_at: paidAt,
