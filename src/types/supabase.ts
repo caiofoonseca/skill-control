@@ -37,6 +37,11 @@ export type Database = {
           name: string;
           active: boolean;
           teacher_id: string | null;
+          contract_start_date: string | null;
+          contract_end_date: string | null;
+          lessons_start_date: string | null;
+          lessons_end_date: string | null;
+          vacation_period: string | null;
         };
         Insert: {
           id?: string;
@@ -45,11 +50,21 @@ export type Database = {
           name: string;
           active?: boolean;
           teacher_id?: string | null;
+          contract_start_date?: string | null;
+          contract_end_date?: string | null;
+          lessons_start_date?: string | null;
+          lessons_end_date?: string | null;
+          vacation_period?: string | null;
         };
         Update: {
           name?: string;
           active?: boolean;
           teacher_id?: string | null;
+          contract_start_date?: string | null;
+          contract_end_date?: string | null;
+          lessons_start_date?: string | null;
+          lessons_end_date?: string | null;
+          vacation_period?: string | null;
         };
       };
       students: {
@@ -82,6 +97,8 @@ export type Database = {
           is_scholarship: boolean;
           scholarship_discount_percent: number | null;
           language: string;
+          contracted_stages: string | null;
+          leave_without_guardian_authorization: "authorized" | "not_authorized" | null;
         };
         Insert: {
           id?: string;
@@ -112,6 +129,8 @@ export type Database = {
           is_scholarship?: boolean;
           scholarship_discount_percent?: number | null;
           language?: string;
+          contracted_stages?: string | null;
+          leave_without_guardian_authorization?: "authorized" | "not_authorized" | null;
         };
         Update: {
           full_name?: string;
@@ -139,6 +158,8 @@ export type Database = {
           is_scholarship?: boolean;
           scholarship_discount_percent?: number | null;
           language?: string;
+          contracted_stages?: string | null;
+          leave_without_guardian_authorization?: "authorized" | "not_authorized" | null;
         };
       };
       student_guardians: {
@@ -366,6 +387,29 @@ export type Database = {
           phone?: string | null;
           family_phone?: string | null;
           active?: boolean;
+        };
+      };
+      contract_emissions: {
+        Row: {
+          id: string;
+          student_id: string;
+          created_at: string;
+          signer_key: "student" | "primary" | "secondary";
+          signer_name: string;
+          emitted_by_email: string | null;
+        };
+        Insert: {
+          id?: string;
+          student_id: string;
+          created_at?: string;
+          signer_key: "student" | "primary" | "secondary";
+          signer_name: string;
+          emitted_by_email?: string | null;
+        };
+        Update: {
+          signer_key?: "student" | "primary" | "secondary";
+          signer_name?: string;
+          emitted_by_email?: string | null;
         };
       };
       user_profiles: {

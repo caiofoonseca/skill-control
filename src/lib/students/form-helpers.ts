@@ -226,6 +226,11 @@ function validateStudentLanguage(formData: FormData, key: string) {
   return null;
 }
 
+function getLeaveWithoutGuardianAuthorization(formData: FormData) {
+  const value = getTextValue(formData, "leave_without_guardian_authorization");
+  return value === "authorized" || value === "not_authorized" ? value : null;
+}
+
 function getScholarshipDiscountPercent(formData: FormData) {
   const value = getTextValue(formData, "scholarship_discount_percent");
   if (!value) return null;
@@ -288,6 +293,7 @@ export function validateStudentFormFields(formData: FormData) {
     validateOptionalAddressText(formData, "financial_address", "Endereço do responsável financeiro"),
     validateOptionalSimpleText(formData, "rg", "RG"),
     validateOptionalSimpleText(formData, "current_book", "Livro atual"),
+    validateOptionalSimpleText(formData, "contracted_stages", "Estágios contratados"),
     validateOptionalSource(formData, "source"),
     validateOptionalInstagram(formData, "guardian1_instagram", "o responsável 1"),
     validateOptionalInstagram(formData, "guardian2_instagram", "o responsável 2"),
@@ -392,6 +398,8 @@ export function buildStudentPayload(
         ? getScholarshipDiscountPercent(formData)
         : null,
     language: getTextValue(formData, "language") ?? "Inglês",
+    contracted_stages: getTextValue(formData, "contracted_stages"),
+    leave_without_guardian_authorization: getLeaveWithoutGuardianAuthorization(formData),
   };
 }
 

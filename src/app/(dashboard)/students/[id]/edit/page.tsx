@@ -54,6 +54,8 @@ export default async function EditStudentPage({
     current_book: student.current_book,
     source: student.source,
     language: student.language,
+    contracted_stages: student.contracted_stages,
+    leave_without_guardian_authorization: student.leave_without_guardian_authorization,
     payment_notes: student.payment_notes,
     is_active: student.is_active ? "true" : "false",
     is_scholarship: student.is_scholarship ? "true" : "false",

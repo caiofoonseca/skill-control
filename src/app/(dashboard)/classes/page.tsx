@@ -274,6 +274,54 @@ export default async function ClassesPage({ searchParams }: PageProps) {
                               Salvar
                             </button>
                           </div>
+
+                          <div className="col-span-full grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                            <label className="block text-sm font-medium text-[var(--foreground)]">
+                              Início do contrato
+                              <input
+                                type="date"
+                                name="contract_start_date"
+                                defaultValue={item.contract_start_date ?? ""}
+                                className="mt-2 w-full rounded-xl border border-[var(--border)] bg-white px-4 py-2.5 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--accent)]"
+                              />
+                            </label>
+                            <label className="block text-sm font-medium text-[var(--foreground)]">
+                              Fim do contrato
+                              <input
+                                type="date"
+                                name="contract_end_date"
+                                defaultValue={item.contract_end_date ?? ""}
+                                className="mt-2 w-full rounded-xl border border-[var(--border)] bg-white px-4 py-2.5 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--accent)]"
+                              />
+                            </label>
+                            <label className="block text-sm font-medium text-[var(--foreground)]">
+                              Início das aulas
+                              <input
+                                type="date"
+                                name="lessons_start_date"
+                                defaultValue={item.lessons_start_date ?? ""}
+                                className="mt-2 w-full rounded-xl border border-[var(--border)] bg-white px-4 py-2.5 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--accent)]"
+                              />
+                            </label>
+                            <label className="block text-sm font-medium text-[var(--foreground)]">
+                              Fim das aulas
+                              <input
+                                type="date"
+                                name="lessons_end_date"
+                                defaultValue={item.lessons_end_date ?? ""}
+                                className="mt-2 w-full rounded-xl border border-[var(--border)] bg-white px-4 py-2.5 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--accent)]"
+                              />
+                            </label>
+                            <label className="block text-sm font-medium text-[var(--foreground)] sm:col-span-2 lg:col-span-4">
+                              Período de férias
+                              <input
+                                name="vacation_period"
+                                defaultValue={item.vacation_period ?? ""}
+                                placeholder="Ex.: 15/12 a 02/01"
+                                className="mt-2 w-full rounded-xl border border-[var(--border)] bg-white px-4 py-2.5 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--accent)]"
+                              />
+                            </label>
+                          </div>
                         </form>
 
                         <div className="mt-5 grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(260px,0.8fr)]">

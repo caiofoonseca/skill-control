@@ -36,7 +36,7 @@ const navItems = [
   },
   {
     href: "/reports",
-    label: "Relatorios",
+    label: "Relatórios",
     description: "Exportacoes",
   },
 ];

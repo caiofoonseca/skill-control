@@ -7,7 +7,9 @@ import {
   updatePaymentInstallmentAction,
 } from "@/app/(dashboard)/students/[id]/actions";
 import { HashScroll } from "@/components/layout/hash-scroll";
+import { ActionIconLink } from "@/components/ui/action-icon";
 import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
+import { getContractEmissions } from "@/lib/contracts/queries";
 import { PAYMENT_METHOD_OPTIONS } from "@/lib/payments/constants";
 import { getStudentDetails } from "@/lib/students/queries";
 
@@ -64,6 +66,19 @@ function formatDate(value: string | null | undefined) {
 
   return new Date(`${value}T12:00:00`).toLocaleDateString("pt-BR");
 }
+
+function formatDateTime(value: string) {
+  return new Date(value).toLocaleString("pt-BR", {
+    dateStyle: "short",
+    timeStyle: "short",
+  });
+}
+
+const SIGNER_LABELS: Record<string, string> = {
+  student: "Aluno",
+  primary: "Responsável 1",
+  secondary: "Responsável 2",
+};
 
 function PaymentPlanSection({
   title,
@@ -264,8 +279,8 @@ export default async function StudentDetailsPage({
 }: PageProps) {
   const { id } = await params;
   const { updated } = await searchParams;
-  const { student, guardians, financialContact, paymentPlans, installments } =
-    await getStudentDetails(id);
+  const [{ student, guardians, financialContact, paymentPlans, installments }, contractEmissions] =
+    await Promise.all([getStudentDetails(id), getContractEmissions(id)]);
 
   if (!student) {
     notFound();
@@ -314,7 +329,7 @@ export default async function StudentDetailsPage({
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <Link
             href={`/students/${student.id}/payments/new`}
             className="rounded-xl border border-[var(--border)] bg-[var(--panel)] px-4 py-2.5 text-sm font-semibold text-[var(--foreground)] transition hover:bg-white"
@@ -322,17 +337,26 @@ export default async function StudentDetailsPage({
             Novo pagamento
           </Link>
           <Link
-            href={`/students/${student.id}/edit`}
-            className="rounded-xl bg-[var(--primary)] px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-95"
+            href={`/students/${student.id}/contract`}
+            target="_blank"
+            className="rounded-xl border border-[var(--border)] bg-[var(--panel)] px-4 py-2.5 text-sm font-semibold text-[var(--foreground)] transition hover:bg-white"
           >
-            Editar
+            Emitir contrato
           </Link>
-          <Link
-            href={`/students/${student.id}/delete`}
-            className="rounded-xl bg-[var(--primary)] px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-95"
-          >
-            Excluir
-          </Link>
+          <div className="flex gap-1.5">
+            <ActionIconLink
+              href={`/students/${student.id}/edit`}
+              label="Editar aluno"
+              icon="edit"
+              variant="primary"
+            />
+            <ActionIconLink
+              href={`/students/${student.id}/delete`}
+              label="Excluir aluno"
+              icon="delete"
+              variant="danger"
+            />
+          </div>
         </div>
       </div>
 
@@ -548,6 +572,64 @@ export default async function StudentDetailsPage({
             </p>
             <p className="mt-3 text-sm leading-6 text-[var(--muted-foreground)]">
               Registre a taxa de matrícula, rematrícula ou mensalidade deste aluno.
+            </p>
+          </div>
+        )}
+      </div>
+
+      <div className="rounded-[28px] border border-[var(--border)] bg-white p-7 shadow-sm">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--accent)]">
+              Contrato
+            </p>
+            <h3 className="mt-3 text-2xl font-semibold text-[var(--foreground)]">
+              Contratos emitidos
+            </h3>
+          </div>
+
+          <Link
+            href={`/students/${student.id}/contract`}
+            target="_blank"
+            className="rounded-xl bg-[var(--primary)] px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-95"
+          >
+            Emitir novo contrato
+          </Link>
+        </div>
+
+        {contractEmissions.length > 0 ? (
+          <>
+            <div className="mt-6 space-y-3">
+              {contractEmissions.map((emission) => (
+                <Link
+                  key={emission.id}
+                  href={`/students/${student.id}/contract`}
+                  target="_blank"
+                  className="block rounded-[18px] border border-[var(--border)] bg-[var(--panel)] px-4 py-3 transition hover:bg-white"
+                >
+                  <p className="text-sm font-semibold text-[var(--foreground)]">
+                    {formatDateTime(emission.created_at)}
+                  </p>
+                  <p className="mt-1 text-sm text-[var(--muted-foreground)]">
+                    Assinado por: {SIGNER_LABELS[emission.signer_key] ?? emission.signer_key} (
+                    {emission.signer_name})
+                    {emission.emitted_by_email ? ` • Emitido por: ${emission.emitted_by_email}` : ""}
+                  </p>
+                </Link>
+              ))}
+            </div>
+            <p className="mt-4 text-xs leading-5 text-[var(--muted-foreground)]">
+              Reabrir uma emissão mostra a tela do contrato com os dados atuais do aluno, não
+              uma cópia congelada de como estava no momento em que foi emitido.
+            </p>
+          </>
+        ) : (
+          <div className="mt-6 rounded-[24px] border border-dashed border-[var(--border)] bg-[var(--panel)] px-6 py-10 text-center">
+            <p className="text-lg font-semibold text-[var(--foreground)]">
+              Nenhum contrato emitido ainda.
+            </p>
+            <p className="mt-3 text-sm leading-6 text-[var(--muted-foreground)]">
+              Clique em &ldquo;Emitir novo contrato&rdquo; pra gerar o contrato deste aluno.
             </p>
           </div>
         )}

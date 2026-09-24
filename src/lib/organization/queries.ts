@@ -23,6 +23,11 @@ type ClassOptionRow = {
   name: string;
   teacher_id: string | null;
   teachers?: { name: string | null } | { name: string | null }[] | null;
+  contract_start_date?: string | null;
+  contract_end_date?: string | null;
+  lessons_start_date?: string | null;
+  lessons_end_date?: string | null;
+  vacation_period?: string | null;
 };
 
 type StudentClassUsageRow = {
@@ -116,7 +121,9 @@ export async function getClassManagementData() {
   const [{ data: classes }, { data: students }] = await Promise.all([
     supabase
       .from("course_classes")
-      .select("id, name, active, teacher_id, teachers(name)")
+      .select(
+        "id, name, active, teacher_id, teachers(name), contract_start_date, contract_end_date, lessons_start_date, lessons_end_date, vacation_period",
+      )
       .order("name", { ascending: true }),
     supabase.from("students").select("id, full_name, class_name, teacher_name").order("full_name", { ascending: true }),
   ]);

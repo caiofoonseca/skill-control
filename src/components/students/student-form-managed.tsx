@@ -104,6 +104,11 @@ const languageOptions = [
   "Português para estrangeiros",
 ] as const;
 
+const leaveAuthorizationOptions = [
+  { value: "authorized", label: "Autorizado" },
+  { value: "not_authorized", label: "Não autorizado" },
+] as const;
+
 type FormValues = Record<string, string | null | undefined>;
 type TeacherOption = { id: string; name: string };
 type ClassOption = {
@@ -722,6 +727,39 @@ export function StudentFormManaged({
                 {currentTeacherOptions.map((item) => (
                   <option key={item.id} value={item.name}>
                     {item.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="block text-sm font-medium text-[var(--foreground)]">
+              Estágios contratados
+              <input
+                name="contracted_stages"
+                type="text"
+                defaultValue={values?.contracted_stages ?? ""}
+                aria-invalid={Boolean(fieldErrors.contracted_stages)}
+                aria-describedby={fieldErrors.contracted_stages ? "contracted_stages-error" : undefined}
+                className={fieldClassName(Boolean(fieldErrors.contracted_stages))}
+              />
+              {fieldErrors.contracted_stages ? (
+                <span id="contracted_stages-error" className="mt-1 block text-xs font-semibold text-[rgb(185,28,28)]">
+                  {fieldErrors.contracted_stages}
+                </span>
+              ) : null}
+            </label>
+
+            <label className="block text-sm font-medium text-[var(--foreground)]">
+              Saída sem responsável
+              <select
+                name="leave_without_guardian_authorization"
+                defaultValue={values?.leave_without_guardian_authorization ?? ""}
+                className={inputClassName()}
+              >
+                <option value="">Não definido</option>
+                {leaveAuthorizationOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
                   </option>
                 ))}
               </select>

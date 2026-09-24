@@ -34,6 +34,11 @@ export async function createClassAction(formData: FormData) {
 export async function updateClassAction(classId: string, currentName: string, formData: FormData) {
   const name = getTextValue(formData, "name");
   const teacherId = getTextValue(formData, "teacher_id");
+  const contractStartDate = getTextValue(formData, "contract_start_date");
+  const contractEndDate = getTextValue(formData, "contract_end_date");
+  const lessonsStartDate = getTextValue(formData, "lessons_start_date");
+  const lessonsEndDate = getTextValue(formData, "lessons_end_date");
+  const vacationPeriod = getTextValue(formData, "vacation_period");
 
   if (!name) {
     redirect("/classes?error=Informe+o+nome+da+turma");
@@ -47,7 +52,15 @@ export async function updateClassAction(classId: string, currentName: string, fo
 
   const { error: classError } = await supabase
     .from("course_classes")
-    .update({ name, teacher_id: teacherId })
+    .update({
+      name,
+      teacher_id: teacherId,
+      contract_start_date: contractStartDate,
+      contract_end_date: contractEndDate,
+      lessons_start_date: lessonsStartDate,
+      lessons_end_date: lessonsEndDate,
+      vacation_period: vacationPeriod,
+    })
     .eq("id", classId);
 
   if (classError) {
