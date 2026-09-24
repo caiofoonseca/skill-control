@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useState } from "react";
 
-const TAB_SESSION_KEY = "skill-control-tab-session";
+import { clearTabSession, markTabSessionActive } from "@/lib/auth/tab-session";
 
 type LoginFormProps = {
   action: (formData: FormData) => void | Promise<void>;
@@ -14,7 +14,7 @@ export function LoginForm({ action, error }: LoginFormProps) {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
   useEffect(() => {
-    sessionStorage.removeItem(TAB_SESSION_KEY);
+    clearTabSession();
   }, []);
 
   return (
@@ -22,7 +22,7 @@ export function LoginForm({ action, error }: LoginFormProps) {
       action={action}
       className="space-y-4"
       onSubmit={() => {
-        sessionStorage.setItem(TAB_SESSION_KEY, "active");
+        markTabSessionActive();
       }}
     >
       <div className="space-y-2">

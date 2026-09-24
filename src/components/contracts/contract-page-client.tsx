@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { logContractEmissionAction } from "@/app/students/[id]/contract/actions";
+import { markTabSessionActive, TAB_SESSION_QUERY_PARAM, TAB_SESSION_QUERY_VALUE } from "@/lib/auth/tab-session";
 
 import { ContractDocument, type MainPlanSummary, type MaterialPlanSummary } from "./contract-document";
 import type { SignerOption } from "./signer-selector";
@@ -31,10 +31,19 @@ export function ContractPageClient({
   studentFullName,
   signerOptions,
   defaultSignerKey,
+  main,
   ...documentProps
 }: ContractPageClientProps) {
   const [selectedKey, setSelectedKey] = useState<SignerOption["key"]>(defaultSignerKey);
   const [isPrinting, setIsPrinting] = useState(false);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get(TAB_SESSION_QUERY_PARAM) === TAB_SESSION_QUERY_VALUE) {
+      markTabSessionActive();
+    }
+  }, []);
 
   async function handlePrint() {
     const selected = signerOptions.find((option) => option.key === selectedKey) ?? signerOptions[0];
@@ -51,6 +60,13 @@ export function ContractPageClient({
     window.print();
   }
 
+  function handleClose() {
+    window.close();
+    window.setTimeout(() => {
+      window.location.href = `/students/${studentId}`;
+    }, 300);
+  }
+
   return (
     <>
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-[28px] border border-[var(--border)] bg-white p-7 shadow-sm print:hidden">
@@ -61,21 +77,51 @@ export function ContractPageClient({
           <h2 className="mt-3 text-3xl font-semibold text-[var(--foreground)]">{studentFullName}</h2>
         </div>
 
-        <div className="flex flex-wrap gap-3">
-          <Link
-            href={`/students/${studentId}`}
-            className="rounded-xl border border-[var(--border)] bg-[var(--panel)] px-4 py-2.5 text-sm font-semibold text-[var(--foreground)] transition hover:bg-white"
-          >
-            Voltar
-          </Link>
-          <button
-            type="button"
-            onClick={handlePrint}
-            disabled={isPrinting}
-            className="rounded-xl bg-[var(--primary)] px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-65"
-          >
-            {isPrinting ? "Registrando..." : "Registrar emissão e imprimir"}
-          </button>
+        <div className="flex flex-col items-start gap-3">
+          <div className="flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={handleClose}
+              className="rounded-xl border border-[var(--border)] bg-[var(--panel)] px-4 py-2.5 text-sm font-semibold text-[var(--foreground)] transition hover:bg-white"
+            >
+              Fechar
+            </button>
+            <button
+              type="button"
+              onClick={handlePrint}
+              disabled={isPrinting}
+              className="rounded-xl bg-[var(--primary)] px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-65"
+            >
+              {isPrinting ? "Abrindo..." : "Imprimir"}
+            </button>
+          </div>
+
+          {!main ? (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setIsPaymentModalOpen(true)}
+                className="rounded-xl border border-[var(--accent)] bg-white px-4 py-2.5 text-sm font-semibold text-[var(--accent)] transition hover:bg-[rgba(182,133,58,0.08)]"
+              >
+                Cadastrar pagamento
+              </button>
+
+              <div className="group relative inline-flex">
+                <span
+                  tabIndex={0}
+                  aria-label="Mais informações sobre cadastrar pagamento"
+                  className="flex h-5 w-5 cursor-help items-center justify-center rounded-full border border-[var(--border)] text-xs font-semibold text-[var(--muted-foreground)] outline-none transition hover:bg-[var(--panel)] focus-visible:ring-2 focus-visible:ring-[rgba(182,133,58,0.4)]"
+                >
+                  ?
+                </span>
+                <div className="pointer-events-none absolute right-0 top-full z-10 mt-2 w-72 rounded-lg border border-[var(--border)] bg-white p-3 text-xs leading-5 text-[var(--foreground)] opacity-0 shadow-lg transition group-hover:opacity-100 group-focus-within:opacity-100">
+                  Esse aluno ainda não tem pagamento cadastrado. Cadastre aqui a mensalidade (e a
+                  taxa de matrícula, se quiser) — ao salvar, já vira pagamento de verdade na
+                  ficha do aluno e preenche a Cláusula V do contrato sozinho.
+                </div>
+              </div>
+            </div>
+          ) : null}
         </div>
       </div>
 
@@ -86,6 +132,9 @@ export function ContractPageClient({
           signerOptions={signerOptions}
           selectedKey={selectedKey}
           onSelectedKeyChange={setSelectedKey}
+          main={main}
+          isPaymentModalOpen={isPaymentModalOpen}
+          onPaymentModalOpenChange={setIsPaymentModalOpen}
           {...documentProps}
         />
       </div>

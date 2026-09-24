@@ -2,6 +2,7 @@
 import { notFound } from "next/navigation";
 
 import {
+  deleteContractEmissionAction,
   deleteInstallmentAction,
   deletePaymentPlanAction,
   updatePaymentInstallmentAction,
@@ -9,6 +10,7 @@ import {
 import { HashScroll } from "@/components/layout/hash-scroll";
 import { ActionIconLink } from "@/components/ui/action-icon";
 import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
+import { withTabSessionContinue } from "@/lib/auth/tab-session";
 import { getContractEmissions } from "@/lib/contracts/queries";
 import { PAYMENT_METHOD_OPTIONS } from "@/lib/payments/constants";
 import { getStudentDetails } from "@/lib/students/queries";
@@ -337,7 +339,7 @@ export default async function StudentDetailsPage({
             Novo pagamento
           </Link>
           <Link
-            href={`/students/${student.id}/contract`}
+            href={withTabSessionContinue(`/students/${student.id}/contract`)}
             target="_blank"
             className="rounded-xl border border-[var(--border)] bg-[var(--panel)] px-4 py-2.5 text-sm font-semibold text-[var(--foreground)] transition hover:bg-white"
           >
@@ -577,7 +579,10 @@ export default async function StudentDetailsPage({
         )}
       </div>
 
-      <div className="rounded-[28px] border border-[var(--border)] bg-white p-7 shadow-sm">
+      <div
+        id="contratos-emitidos"
+        className="scroll-mt-6 rounded-[28px] border border-[var(--border)] bg-white p-7 shadow-sm"
+      >
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--accent)]">
@@ -589,7 +594,7 @@ export default async function StudentDetailsPage({
           </div>
 
           <Link
-            href={`/students/${student.id}/contract`}
+            href={withTabSessionContinue(`/students/${student.id}/contract`)}
             target="_blank"
             className="rounded-xl bg-[var(--primary)] px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-95"
           >
@@ -601,21 +606,50 @@ export default async function StudentDetailsPage({
           <>
             <div className="mt-6 space-y-3">
               {contractEmissions.map((emission) => (
-                <Link
+                <div
                   key={emission.id}
-                  href={`/students/${student.id}/contract`}
-                  target="_blank"
-                  className="block rounded-[18px] border border-[var(--border)] bg-[var(--panel)] px-4 py-3 transition hover:bg-white"
+                  className="flex flex-col gap-3 rounded-[18px] border border-[var(--border)] bg-[var(--panel)] px-4 py-3 sm:flex-row sm:items-start sm:justify-between"
                 >
-                  <p className="text-sm font-semibold text-[var(--foreground)]">
-                    {formatDateTime(emission.created_at)}
-                  </p>
-                  <p className="mt-1 text-sm text-[var(--muted-foreground)]">
-                    Assinado por: {SIGNER_LABELS[emission.signer_key] ?? emission.signer_key} (
-                    {emission.signer_name})
-                    {emission.emitted_by_email ? ` • Emitido por: ${emission.emitted_by_email}` : ""}
-                  </p>
-                </Link>
+                  <Link
+                    href={withTabSessionContinue(`/students/${student.id}/contract`)}
+                    target="_blank"
+                    className="block hover:underline"
+                  >
+                    <p className="text-sm font-semibold text-[var(--foreground)]">
+                      {formatDateTime(emission.created_at)}
+                    </p>
+                    <p className="mt-1 text-sm text-[var(--muted-foreground)]">
+                      Assinado por: {SIGNER_LABELS[emission.signer_key] ?? emission.signer_key} (
+                      {emission.signer_name})
+                      {emission.emitted_by_email ? ` • Emitido por: ${emission.emitted_by_email}` : ""}
+                    </p>
+                  </Link>
+
+                  <form action={deleteContractEmissionAction.bind(null, student.id, emission.id)}>
+                    <ConfirmSubmitButton
+                      message="Deseja excluir esse registro de emissão do histórico?"
+                      className="inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-md border border-[rgba(236,28,36,0.24)] bg-white text-[var(--primary)] transition hover:bg-[rgba(236,28,36,0.06)]"
+                    >
+                      <span className="sr-only">Excluir emissão</span>
+                      <svg
+                        aria-hidden="true"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="h-4 w-4"
+                      >
+                        <path d="M3 6h18" />
+                        <path d="M8 6V4h8v2" />
+                        <path d="M19 6l-1 14H6L5 6" />
+                        <path d="M10 11v5" />
+                        <path d="M14 11v5" />
+                      </svg>
+                    </ConfirmSubmitButton>
+                  </form>
+                </div>
               ))}
             </div>
             <p className="mt-4 text-xs leading-5 text-[var(--muted-foreground)]">

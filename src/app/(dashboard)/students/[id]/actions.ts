@@ -11,6 +11,28 @@ function getTextValue(formData: FormData, key: string) {
   return value.length > 0 ? value : null;
 }
 
+export async function deleteContractEmissionAction(studentId: string, emissionId: string) {
+  const supabase = await createSupabaseServerClient();
+  await assertCanDelete(supabase, `/students/${studentId}`);
+
+  const { error } = await supabase
+    .from("contract_emissions")
+    .delete()
+    .eq("id", emissionId)
+    .eq("student_id", studentId);
+
+  if (error) {
+    redirect(
+      `/students/${studentId}?updated=${encodeURIComponent("Não foi possível excluir a emissão")}#contratos-emitidos`,
+    );
+  }
+
+  revalidatePath(`/students/${studentId}`);
+  redirect(
+    `/students/${studentId}?updated=${encodeURIComponent("Emissão excluída com sucesso")}#contratos-emitidos`,
+  );
+}
+
 export async function updatePaymentInstallmentAction(
   studentId: string,
   installmentId: string,

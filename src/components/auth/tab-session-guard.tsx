@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from "react";
 
-const TAB_SESSION_KEY = "skill-control-tab-session";
+import { isTabSessionActive } from "@/lib/auth/tab-session";
 
 export function TabSessionGuard() {
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    if (sessionStorage.getItem(TAB_SESSION_KEY) === "active") {
+    if (isTabSessionActive()) {
       queueMicrotask(() => setIsReady(true));
       return;
     }

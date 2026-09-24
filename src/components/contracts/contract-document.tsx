@@ -19,7 +19,6 @@ export type MainPlanSummary = {
   totalAmountFormatted: string;
   installmentCount: number;
   firstDueDateFormatted: string | null;
-  lastDueDateFormatted: string | null;
 };
 
 type ContractDocumentProps = {
@@ -28,6 +27,8 @@ type ContractDocumentProps = {
   signerOptions: SignerOption[];
   selectedKey: SignerOption["key"];
   onSelectedKeyChange: (key: SignerOption["key"]) => void;
+  isPaymentModalOpen: boolean;
+  onPaymentModalOpenChange: (open: boolean) => void;
   contractedStages: string | null;
   contractStartDateFormatted: string | null;
   contractEndDateFormatted: string | null;
@@ -54,22 +55,33 @@ function ManualBlank({
   onChange,
   width = "220px",
   inputMode,
+  placeholder,
 }: {
   value: string;
   onChange: (value: string) => void;
   width?: string;
   inputMode?: "numeric";
+  placeholder?: string;
 }) {
   return (
     <input
       type="text"
       inputMode={inputMode}
       value={value}
+      placeholder={placeholder}
       onChange={(event) => onChange(event.target.value)}
-      className="inline-block border-0 border-b border-[var(--foreground)] bg-transparent px-1 text-sm text-[var(--foreground)] outline-none focus:border-[var(--accent)] focus:bg-[rgba(182,133,58,0.08)]"
+      className="inline-block border-0 border-b border-[var(--foreground)] bg-transparent px-1 text-sm text-[var(--foreground)] outline-none placeholder:text-[var(--muted-foreground)] focus:border-[var(--accent)] focus:bg-[rgba(182,133,58,0.08)]"
       style={{ width, minHeight: "1.4em" }}
     />
   );
+}
+
+function formatDateInput(value: string) {
+  const digits = value.replace(/\D/g, "").slice(0, 8);
+  let result = digits.slice(0, 2);
+  if (digits.length > 2) result += "/" + digits.slice(2, 4);
+  if (digits.length > 4) result += "/" + digits.slice(4, 8);
+  return result;
 }
 
 export function ContractDocument({
@@ -78,6 +90,8 @@ export function ContractDocument({
   signerOptions,
   selectedKey,
   onSelectedKeyChange,
+  isPaymentModalOpen,
+  onPaymentModalOpenChange,
   contractedStages,
   contractStartDateFormatted,
   contractEndDateFormatted,
@@ -95,7 +109,6 @@ export function ContractDocument({
 
   const [manualValues, setManualValues] = useState<Record<string, string>>({});
   const [manualChecks, setManualChecks] = useState<Record<string, boolean>>({});
-  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
   function manualBlank(id: string, width?: string) {
     return (
@@ -118,6 +131,18 @@ export function ContractDocument({
     );
   }
 
+  function manualDateBlank(id: string, width = "115px") {
+    return (
+      <ManualBlank
+        value={manualValues[id] ?? ""}
+        onChange={(value) => setManualValues((current) => ({ ...current, [id]: formatDateInput(value) }))}
+        width={width}
+        inputMode="numeric"
+        placeholder="DD/MM/AAAA"
+      />
+    );
+  }
+
   function manualCheckbox(id: string) {
     return (
       <input
@@ -132,23 +157,9 @@ export function ContractDocument({
     );
   }
 
-  function toIsoDate(value: string) {
-    const trimmed = value.trim();
-
-    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
-      return trimmed;
-    }
-
-    const brMatch = trimmed.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-    if (brMatch) {
-      const [, day, month, year] = brMatch;
-      return `${year}-${month}-${day}`;
-    }
-
-    return "";
-  }
-
-  function handlePaymentSaved() {
+  function handlePaymentSaved(values: Record<string, string>) {
+    setManualValues((current) => ({ ...current, ...values }));
+    onPaymentModalOpenChange(false);
     router.refresh();
   }
 
@@ -180,6 +191,14 @@ export function ContractDocument({
           />
         </div>
       </div>
+
+      {isPaymentModalOpen ? (
+        <CompletePaymentModal
+          studentId={studentId}
+          onClose={() => onPaymentModalOpenChange(false)}
+          onSaved={handlePaymentSaved}
+        />
+      ) : null}
 
       <h1 className="mt-6 text-center text-base font-bold uppercase">
         Contrato Anual de Prestação de Serviços Educacionais
@@ -240,25 +259,25 @@ export function ContractDocument({
         {contractStartDateFormatted ? (
           <strong>{contractStartDateFormatted}</strong>
         ) : (
-          manualBlank("contract_start_date", "120px")
+          manualDateBlank("contract_start_date", "120px")
         )}{" "}
         a{" "}
         {contractEndDateFormatted ? (
           <strong>{contractEndDateFormatted}</strong>
         ) : (
-          manualBlank("contract_end_date", "120px")
+          manualDateBlank("contract_end_date", "120px")
         )}
         . Aulas iniciam em{" "}
         {lessonsStartDateFormatted ? (
           <strong>{lessonsStartDateFormatted}</strong>
         ) : (
-          manualBlank("lessons_start_date", "120px")
+          manualDateBlank("lessons_start_date", "120px")
         )}{" "}
         e terminam em{" "}
         {lessonsEndDateFormatted ? (
           <strong>{lessonsEndDateFormatted}</strong>
         ) : (
-          manualBlank("lessons_end_date", "120px")
+          manualDateBlank("lessons_end_date", "120px")
         )}
         , com férias em{" "}
         {vacationPeriod ? <strong>{vacationPeriod}</strong> : manualBlank("vacation_period", "160px")}, e a
@@ -296,13 +315,13 @@ export function ContractDocument({
           {material.validFromFormatted ? (
             <strong>{material.validFromFormatted}</strong>
           ) : (
-            manualBlank("material_valid_from", "120px")
+            manualDateBlank("material_valid_from", "120px")
           )}{" "}
           até{" "}
           {material.validUntilFormatted ? (
             <strong>{material.validUntilFormatted}</strong>
           ) : (
-            manualBlank("material_valid_until", "120px")
+            manualDateBlank("material_valid_until", "120px")
           )}
           .
         </P>
@@ -311,18 +330,18 @@ export function ContractDocument({
           <P>
             {manualCheckbox("material_l1_selected")} {manualBlank("material_l1_vezes", "40px")} vezes, a parte{" "}
             {manualBlank("material_l1_parte", "40px")} no {manualMoneyBlank("material_l1_valor", "120px")} válido
-            de {manualBlank("material_l1_de", "100px")} até {manualBlank("material_l1_ate", "100px")}
+            de {manualDateBlank("material_l1_de", "100px")} até {manualDateBlank("material_l1_ate", "100px")}
           </P>
           <P>
             {manualCheckbox("material_l2_selected")} {manualBlank("material_l2_vezes", "40px")} vezes, a parte{" "}
             {manualBlank("material_l2_parte", "40px")} no {manualMoneyBlank("material_l2_valor", "120px")} válido
-            de {manualBlank("material_l2_de", "100px")} até {manualBlank("material_l2_ate", "100px")}{" "}
+            de {manualDateBlank("material_l2_de", "100px")} até {manualDateBlank("material_l2_ate", "100px")}{" "}
             {manualCheckbox("material_l2_a_quitar")} A quitar
           </P>
           <P>
             {manualCheckbox("material_l3_selected")} {manualBlank("material_l3_vezes", "40px")} vezes, o material
             anual, no valor de {manualMoneyBlank("material_l3_valor", "120px")} válido de{" "}
-            {manualBlank("material_l3_de", "100px")} até {manualBlank("material_l3_ate", "100px")}
+            {manualDateBlank("material_l3_de", "100px")} até {manualDateBlank("material_l3_ate", "100px")}
           </P>
         </>
       )}
@@ -358,7 +377,7 @@ export function ContractDocument({
         {main?.firstDueDateFormatted ? (
           <strong>{main.firstDueDateFormatted}</strong>
         ) : (
-          manualBlank("main_first_due_date", "120px")
+          manualDateBlank("main_first_due_date", "120px")
         )}
         , como sinal, garantia e princípio de pagamento, como condição para concretização e
         celebração deste contrato de prestação de serviços. Sendo as demais parcelas, quitadas
@@ -369,22 +388,12 @@ export function ContractDocument({
       </P>
       <P>
         As parcelas de recebimento para a Escola, começam em{" "}
-        {main?.firstDueDateFormatted ? (
-          <strong>{main.firstDueDateFormatted}</strong>
-        ) : (
-          manualBlank("main_installments_start_date", "120px")
-        )}{" "}
-        e terminam em{" "}
-        {main?.lastDueDateFormatted ? (
-          <strong>{main.lastDueDateFormatted}</strong>
-        ) : (
-          manualBlank("main_last_due_date", "120px")
-        )}
-        , mesmo as aulas finalizando em{" "}
+        {manualDateBlank("main_installments_start_date", "120px")} e terminam em{" "}
+        {manualDateBlank("main_last_due_date", "120px")}, mesmo as aulas finalizando em{" "}
         {lessonsEndDateFormatted ? (
           <strong>{lessonsEndDateFormatted}</strong>
         ) : (
-          manualBlank("lessons_end_date", "120px")
+          manualDateBlank("lessons_end_date", "120px")
         )}
         . Os pagamentos celebrados, podem divergir entre o recebimento da Escola e o vencimento
         da fatura do cartão de crédito do cliente.
@@ -417,46 +426,6 @@ export function ContractDocument({
         adotando-se o que for mais benéfico ao (à) CONTRATANTE ou o que for expressamente
         indicado por este último.
       </P>
-
-      {!main ? (
-        <div className="mt-3 rounded-lg border border-dashed border-[var(--accent)] bg-[rgba(182,133,58,0.06)] p-4 print:hidden">
-          <p className="text-sm leading-6 text-[var(--foreground)]">
-            Esse aluno ainda não tem pagamento cadastrado. Preencha os valores da Cláusula V
-            acima e clique abaixo pra completar (falta só a forma de pagamento) e salvar direto
-            na ficha do aluno, sem sair desta tela.
-          </p>
-          <button
-            type="button"
-            onClick={() => setIsPaymentModalOpen(true)}
-            className="mt-3 rounded-lg bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-white transition hover:opacity-95"
-          >
-            Completar pagamento
-          </button>
-        </div>
-      ) : null}
-
-      {isPaymentModalOpen ? (
-        <CompletePaymentModal
-          studentId={studentId}
-          course={{
-            totalAmount: manualValues.main_total_amount ?? "",
-            installmentCount: manualValues.main_installment_count ?? "",
-            dueDateIso: toIsoDate(manualValues.main_first_due_date ?? "") || null,
-            dueDateRaw: manualValues.main_first_due_date ?? "",
-          }}
-          enrollment={
-            manualValues.enrollment_fee
-              ? {
-                  amount: manualValues.enrollment_fee,
-                  dueDateIso: toIsoDate(manualValues.main_first_due_date ?? "") || null,
-                  dueDateRaw: manualValues.main_first_due_date ?? "",
-                }
-              : null
-          }
-          onClose={() => setIsPaymentModalOpen(false)}
-          onSaved={handlePaymentSaved}
-        />
-      ) : null}
 
       <ClauseTitle>Cláusula VI – Do inadimplemento e cancelamento do contrato</ClauseTitle>
       <P>

@@ -95,7 +95,6 @@ export default async function StudentContractPage({ params }: PageProps) {
         totalAmountFormatted: formatMoneyBR(mainPlan.total_amount) ?? "-",
         installmentCount: mainInstallments.length || mainPlan.installment_count,
         firstDueDateFormatted: formatDateBR(mainDueRange.first),
-        lastDueDateFormatted: formatDateBR(mainDueRange.last),
       }
     : null;
 
