@@ -116,7 +116,7 @@ export default async function StudentContractPage({ params }: PageProps) {
           main={main}
           enrollmentFeeFormatted={formatMoneyBR(enrollmentPlan?.total_amount)}
           leaveAuthorization={student.leave_without_guardian_authorization}
-          todayFormatted={new Date().toLocaleDateString("pt-BR")}
+          todayFormatted={new Date().toLocaleDateString("pt-BR", { timeZone: "America/Recife" })}
         />
       </section>
     </main>

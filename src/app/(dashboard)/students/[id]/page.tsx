@@ -73,6 +73,7 @@ function formatDateTime(value: string) {
   return new Date(value).toLocaleString("pt-BR", {
     dateStyle: "short",
     timeStyle: "short",
+    timeZone: "America/Recife",
   });
 }
 
@@ -439,7 +440,13 @@ export default async function StudentDetailsPage({
             </div>
           </section>
         </div>
-        <div className="mt-6 rounded-[24px] border border-[var(--border)] bg-[var(--panel)] p-5">
+      </div>
+
+      <div className="rounded-[28px] border border-[var(--border)] bg-white p-7 shadow-sm">
+        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--accent)]">
+          Informações gerais
+        </p>
+        <div className="mt-5 rounded-[24px] border border-[var(--border)] bg-[var(--panel)] p-5">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted-foreground)]">
             Observações gerais
           </p>

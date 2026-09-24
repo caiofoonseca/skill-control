@@ -42,7 +42,7 @@ function hasInlinePaymentContent(formData: FormData, installmentCount: number) {
     "payment_title",
     "payment_default_method",
     "payment_base_date",
-    "payment_notes",
+    "initial_payment_notes",
   ];
 
   for (let index = 1; index <= Math.max(installmentCount, 1); index += 1) {
@@ -166,7 +166,7 @@ export async function updateStudentAction(studentId: string, formData: FormData)
     const effectivePaymentType = paymentType && isValidPaymentType(paymentType) ? paymentType : "installments";
     const title =
       getTextValue(formData, "payment_title") ??
-      getTextValue(formData, "payment_notes") ??
+      getTextValue(formData, "initial_payment_notes") ??
       getDefaultPaymentTitle(effectivePaymentType);
 
     const paymentPlanPayload: Database["public"]["Tables"]["student_payment_plans"]["Insert"] = {
@@ -177,7 +177,7 @@ export async function updateStudentAction(studentId: string, formData: FormData)
       is_installment: isInstallment,
       installment_count: effectiveCount,
       default_payment_method: defaultPaymentMethod,
-      notes: getTextValue(formData, "payment_notes"),
+      notes: getTextValue(formData, "initial_payment_notes"),
     };
 
     const { data: paymentPlan, error: paymentPlanError } = await supabase

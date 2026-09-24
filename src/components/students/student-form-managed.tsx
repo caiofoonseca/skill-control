@@ -765,6 +765,18 @@ export function StudentFormManaged({
               </select>
             </label>
           </div>
+
+          <label className="mt-5 block text-sm font-medium text-[var(--foreground)]">
+            Observações gerais
+            <textarea
+              name="payment_notes"
+              rows={4}
+              defaultValue={values?.payment_notes ?? ""}
+              placeholder="Anotações livres sobre o aluno."
+              className="mt-2 w-full rounded-2xl border border-[rgba(182,133,58,0.42)] bg-[rgba(255,247,237,0.55)] px-4 py-3 text-base text-[var(--foreground)] outline-none transition placeholder:text-[rgba(20,48,95,0.62)] focus:border-[var(--accent)] focus:bg-white focus:ring-2 focus:ring-[rgba(182,133,58,0.2)]"
+            />
+          </label>
+
           <InlinePaymentFields studentId={studentId} existingPayments={existingPayments} />
         </div>
 
