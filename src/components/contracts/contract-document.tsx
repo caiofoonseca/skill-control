@@ -362,7 +362,7 @@ export function ContractDocument({
         Pelos serviços prestados, referidos na Cláusula I, o CONTRATANTE pagará à SKILL IDIOMAS
         GRAÇAS a importância de{" "}
         {main ? <strong>{main.totalAmountFormatted}</strong> : manualMoneyBlank("main_total_amount", "160px")} (
-        {manualBlank("main_total_amount_extenso", "360px")} por extenso) PARCELADOS EM{" "}
+        {manualBlank("main_total_amount_extenso", "360px")}) PARCELADOS EM{" "}
         {main ? <strong>{main.installmentCount}</strong> : manualBlank("main_installment_count", "40px")} VEZES e
         Taxa de Matrícula no valor de{" "}
         {enrollmentFeeFormatted ? (

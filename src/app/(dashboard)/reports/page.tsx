@@ -90,9 +90,6 @@ export default async function ReportsPage() {
         <h2 className="mt-3 text-3xl font-semibold text-[var(--foreground)]">
           Exportação de dados
         </h2>
-        <p className="mt-4 max-w-2xl text-base leading-7 text-[var(--muted-foreground)]">
-          Gere planilhas prontas para acompanhamento administrativo com base no cadastro atual de alunos.
-        </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">

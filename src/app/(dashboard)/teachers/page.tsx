@@ -44,9 +44,6 @@ export default async function TeachersPage({ searchParams }: PageProps) {
         <h2 className="mt-3 text-3xl font-semibold text-[var(--foreground)]">
           Gerenciamento de professores
         </h2>
-        <p className="mt-4 max-w-2xl text-base leading-7 text-[var(--muted-foreground)]">
-          Cadastre os professores da unidade e acompanhe as turmas ligadas a cada um deles.
-        </p>
       </div>
 
       {params.error ? (
@@ -107,9 +104,6 @@ export default async function TeachersPage({ searchParams }: PageProps) {
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--accent)]">
                 Professores cadastrados
-              </p>
-              <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">
-                Consulte quantas turmas cada professor atende e quais são elas.
               </p>
             </div>
             <div className="rounded-full bg-[var(--panel)] px-4 py-2 text-sm font-semibold text-[var(--foreground)]">

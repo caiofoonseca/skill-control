@@ -327,9 +327,6 @@ export default async function StudentDetailsPage({
               Aluno bolsista{student.scholarship_discount_percent ? ` - ${student.scholarship_discount_percent}%` : ""}
             </p>
           ) : null}
-          <p className="mt-4 max-w-2xl text-base leading-7 text-[var(--muted-foreground)]">
-            Visualização completa do cadastro do aluno, com responsáveis e dados financeiros.
-          </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">

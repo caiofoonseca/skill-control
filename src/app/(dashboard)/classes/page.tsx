@@ -53,9 +53,6 @@ export default async function ClassesPage({ searchParams }: PageProps) {
         <h2 className="mt-3 text-3xl font-semibold text-[var(--foreground)]">
           Gerenciamento de turmas
         </h2>
-        <p className="mt-4 max-w-2xl text-base leading-7 text-[var(--muted-foreground)]">
-          Cadastre e organize as turmas/horários da unidade, associando cada uma ao professor responsável.
-        </p>
       </div>
 
       {params.error ? (
@@ -127,9 +124,6 @@ export default async function ClassesPage({ searchParams }: PageProps) {
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--accent)]">
                 Turmas cadastradas
-              </p>
-              <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">
-                Veja o professor de cada turma e ajuste a associação quando necessário.
               </p>
             </div>
             <div className="rounded-full bg-[var(--panel)] px-4 py-2 text-sm font-semibold text-[var(--foreground)]">

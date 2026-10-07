@@ -41,12 +41,16 @@ export default async function UsersPage({ searchParams }: PageProps) {
         <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--accent)]">
           Usuarios
         </p>
-        <h2 className="mt-3 text-3xl font-semibold text-[var(--foreground)]">
+        <h2 className="mt-3 flex items-center gap-3 text-3xl font-semibold text-[var(--foreground)]">
           Cadastro de usuarios
+          <span
+            title="Usuarios MASTER podem criar acessos para Secretaria ou Visualizador."
+            aria-label="Usuarios MASTER podem criar acessos para Secretaria ou Visualizador."
+            className="flex h-4 w-4 translate-y-[3px] cursor-help items-center justify-center rounded-full border border-[var(--muted-foreground)] text-[10px] font-semibold text-[var(--muted-foreground)]"
+          >
+            ?
+          </span>
         </h2>
-        <p className="mt-4 max-w-2xl text-base leading-7 text-[var(--muted-foreground)]">
-          Usuarios MASTER podem criar acessos para Secretaria ou Visualizador.
-        </p>
       </div>
 
       {params.error ? (
@@ -140,7 +144,16 @@ export default async function UsersPage({ searchParams }: PageProps) {
                 </label>
 
                 <label className="block text-sm font-medium text-[var(--foreground)]">
-                  Perfil
+                  <span className="flex items-center gap-2">
+                    Perfil
+                    <span
+                      title="Secretaria pode cadastrar e editar, mas não excluir. Visualizador apenas consulta as telas."
+                      aria-label="Secretaria pode cadastrar e editar, mas não excluir. Visualizador apenas consulta as telas."
+                      className="flex h-4 w-4 cursor-help items-center justify-center rounded-full border border-[var(--muted-foreground)] text-[10px] font-semibold text-[var(--muted-foreground)]"
+                    >
+                      ?
+                    </span>
+                  </span>
                   <select
                     name="role"
                     defaultValue="secretary"
@@ -150,10 +163,6 @@ export default async function UsersPage({ searchParams }: PageProps) {
                     <option value="viewer">Visualizador</option>
                   </select>
                 </label>
-
-                <div className="rounded-2xl border border-[var(--border)] bg-[var(--panel)] px-4 py-3 text-sm leading-6 text-[var(--muted-foreground)]">
-                  Secretaria pode cadastrar e editar, mas não excluir. Visualizador apenas consulta as telas.
-                </div>
 
                 <button
                   type="submit"

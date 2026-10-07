@@ -81,9 +81,6 @@ export default async function BooksPage({ searchParams }: PageProps) {
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--accent)]">
                 Livros cadastrados
               </p>
-              <p className="mt-2 text-sm leading-6 text-[var(--muted-foreground)]">
-                Edite a nomenclatura e acompanhe quantos alunos usam cada livro.
-              </p>
             </div>
             <div className="rounded-full bg-[var(--panel)] px-4 py-2 text-sm font-semibold text-[var(--foreground)]">
               {books.length} {books.length === 1 ? "livro" : "livros"}
